@@ -1,0 +1,1221 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Simulador de galaxias</title>
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<script>
+//modo incrustado: dentro de un iframe (o con ?embed=1) se esconde el encabezado propio
+(function () {
+  var inFrame = false; try { inFrame = window.self !== window.top; } catch (e) { inFrame = true; }
+  if (inFrame || /[?&]embed=1/.test(location.search)) document.documentElement.classList.add("embed");
+})();
+</script>
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/*layout: header + 2 columnas (parametros | simulacion) como el diseno de canva, luego panel de separacion y secciones info/code/help*/
+:root {
+  color-scheme: dark;
+  --space: #140a26;
+  --space-2: #1f0f38;
+  --nebula-a: rgba(126, 58, 190, 0.45);
+  --nebula-b: rgba(214, 70, 160, 0.22);
+  --nebula-c: rgba(58, 80, 200, 0.28);
+  --gold: #f5d63a;
+  --gold-deep: #e0a91f;
+  --panel: rgba(140, 131, 150, 0.86);
+  --panel-line: rgba(255, 255, 255, 0.92);
+  --screen: #1c1921;
+  --screen-edge: #2c2833;
+  --pill: #dedbe4;
+  --pill-knob: #1f1b25;
+  --ink: #ffffff;
+  --ink-soft: rgba(255, 255, 255, 0.78);
+  --ink-mute: rgba(255, 255, 255, 0.58);
+  --ink-dark: #17131d;
+  --card: rgba(24, 14, 42, 0.72);
+  --card-line: rgba(255, 255, 255, 0.12);
+  --g1: #ffb65c;
+  --g2: #86b4ff;
+  --vrad: #ff6b8a;
+  --vtan: #5ee8a8;
+  --code-bg: #0f0a1a;
+  --f-display: "Baloo 2", "Nunito", system-ui, sans-serif;
+  --f-body: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--space);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 16px;
+  line-height: 1.55;
+  min-height: 100%;
+}
+#sky { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+.nebula {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(60% 50% at 70% 35%, var(--nebula-a), transparent 70%),
+    radial-gradient(45% 40% at 20% 70%, var(--nebula-b), transparent 70%),
+    radial-gradient(50% 45% at 90% 85%, var(--nebula-c), transparent 70%),
+    linear-gradient(160deg, var(--space-2), var(--space) 60%);
+}
+.wrap { position: relative; z-index: 1; max-width: none; margin: 0; padding-inline: clamp(16px, 3vw, 48px); }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/*header*/
+.topbar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: rgba(20, 10, 38, 0.82);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--card-line);
+}
+.topbar .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 10px; }
+.logo { font-family: var(--f-display); font-weight: 800; color: var(--gold); line-height: 0.82; font-size: 22px; text-decoration: none; }
+.logo span { display: block; }
+.nav { display: flex; gap: clamp(18px, 4vw, 56px); }
+.nav a { color: var(--ink); text-decoration: none; font-size: 18px; letter-spacing: 0.08em; font-weight: 400; padding: 4px 2px; border-bottom: 2px solid transparent; }
+.nav a:hover, .nav a:focus-visible { border-bottom-color: var(--gold); outline: none; }
+
+/*hero grid*/
+.lab {
+  display: grid;
+  grid-template-columns: minmax(420px, 0.8fr) minmax(0, 1.3fr);
+  grid-template-areas: "title sim" "params sim" "params sliders" "chart chart";
+  gap: 22px 40px;
+  padding-block: 28px 40px;
+  align-items: start;
+}
+.title { grid-area: title; padding-left: 10px; }
+.title h1 {
+  margin: 0; font-family: var(--f-display); font-weight: 800; color: var(--gold);
+  font-size: clamp(46px, 6.4vw, 78px); line-height: 0.78; letter-spacing: 0.005em;
+  text-shadow: 0 4px 30px rgba(245, 214, 58, 0.18);
+}
+.title h1 span { display: block; }
+.title h1 span + span { margin-left: -0.45em; }
+.title p { margin: 18px 0 0; color: var(--ink-soft); max-width: 44ch; font-size: 15px; }
+
+/*parametros*/
+.params {
+  grid-area: params;
+  background: var(--panel);
+  border-radius: 34px;
+  padding: 16px 26px 22px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+}
+.params h2 { margin: 0 0 10px; font-family: var(--f-body); font-weight: 800; font-size: 22px; letter-spacing: 0.01em; }
+.prow { display: grid; grid-template-columns: 200px minmax(0, 1fr) 54px; align-items: center; gap: 12px; padding-block: 3px; }
+.prow label { font-size: 17px; font-weight: 400; text-align: left; white-space: nowrap; }
+.prow label sub { font-size: 12px; }
+.prow output { font-variant-numeric: tabular-nums; font-size: 14px; font-weight: 700; text-align: right; }
+.group-label { margin: 12px 0 2px; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; color: var(--ink-soft); display: flex; align-items: center; gap: 8px; }
+.group-label i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.pfoot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 14px; font-size: 13px; color: var(--ink-soft); }
+.pfoot select { font: inherit; font-weight: 700; color: var(--ink-dark); background: var(--pill); border: 0; border-radius: 999px; padding: 4px 10px; }
+
+/*slider fino (parametros)*/
+input.line { -webkit-appearance: none; appearance: none; width: 100%; height: 22px; background: transparent; margin: 0; cursor: pointer; }
+input.line::-webkit-slider-runnable-track { height: 2px; background: var(--panel-line); border-radius: 2px; }
+input.line::-moz-range-track { height: 2px; background: var(--panel-line); border-radius: 2px; }
+input.line::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; margin-top: -6px; border-radius: 50%; background: var(--gold); border: 2px solid var(--ink); }
+input.line::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: var(--gold); border: 2px solid var(--ink); }
+input.line:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 4px; }
+
+/*pantalla de simulacion*/
+.sim { grid-area: sim; position: relative; background: var(--screen); border: 1px solid var(--screen-edge); border-radius: 4px; aspect-ratio: 16 / 10.2; max-width: 100%; max-height: 82vh; overflow: hidden; touch-action: none; margin-top: 30px; }
+.sim canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+.sim canvas:active { cursor: grabbing; }
+.run {
+  font: 800 14px var(--f-body); color: var(--ink); background: transparent; border: 0;
+  padding: 6px 8px; cursor: pointer; border-radius: 6px;
+}
+.run:hover, .run:focus-visible { background: rgba(255, 255, 255, 0.08); outline: none; }
+.run[data-busy] { color: var(--gold); }
+.views { position: absolute; top: 10px; left: 12px; display: flex; gap: 2px; background: rgba(255, 255, 255, 0.06); border-radius: 999px; padding: 3px; }
+.views button { font: 700 12px var(--f-body); color: var(--ink-mute); background: transparent; border: 0; padding: 4px 10px; border-radius: 999px; cursor: pointer; letter-spacing: 0.04em; }
+.views button[aria-pressed="true"] { background: var(--pill); color: var(--ink-dark); }
+.views button:focus-visible { outline: 2px solid var(--gold); }
+.hud { position: absolute; left: 14px; bottom: 12px; font: 600 12px var(--f-mono); color: var(--ink-soft); display: flex; flex-direction: column; gap: 6px; pointer-events: none; font-variant-numeric: tabular-nums; }
+.scalebar { display: flex; align-items: center; gap: 8px; }
+.scalebar b { display: block; height: 2px; background: var(--ink-soft); }
+.legend { position: absolute; right: 14px; bottom: 12px; font: 600 12px var(--f-body); color: var(--ink-soft); display: flex; gap: 12px; pointer-events: none; }
+.legend span { display: flex; align-items: center; gap: 6px; }
+.legend i { width: 8px; height: 8px; border-radius: 50%; }
+.hint { position: absolute; top: 44px; left: 14px; font-size: 11px; color: var(--ink-mute); pointer-events: none; }
+
+/*barra de herramientas de la pantalla: captura, grabar, agrandar*/
+.tools { position: absolute; top: 10px; right: 12px; display: flex; align-items: center; gap: 6px; z-index: 3; }
+.tbtn { width: 34px; height: 34px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, 0.08); color: var(--ink); display: grid; place-items: center; cursor: pointer; padding: 0; }
+.tbtn:hover, .tbtn:focus-visible { background: rgba(255, 255, 255, 0.18); outline: none; }
+.tbtn:focus-visible { box-shadow: 0 0 0 2px var(--gold); }
+.tbtn svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tbtn[data-rec] { background: #e5484d; color: #fff; }
+.tbtn.only-exp { display: none; }
+.sim.expanded .tbtn.only-exp, .sim:fullscreen .tbtn.only-exp { display: grid; }
+.recpill { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; background: rgba(20, 10, 30, 0.8); border: 1px solid rgba(229, 72, 77, 0.6); color: #fff; font: 700 12px var(--f-mono); padding: 4px 12px; border-radius: 999px; pointer-events: none; z-index: 3; }
+.recpill i { width: 9px; height: 9px; border-radius: 50%; background: #e5484d; animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0.2; } }
+@media (prefers-reduced-motion: reduce) { .recpill i { animation: none; } }
+.recpanel { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(12, 6, 22, 0.72); z-index: 4; }
+.recpanel .box { background: var(--space-2); border: 1px solid var(--card-line); border-radius: 18px; padding: 20px 22px; width: min(360px, calc(100% - 32px)); display: grid; gap: 10px; }
+.recpanel h3 { margin: 0; font-size: 17px; font-weight: 800; }
+.recpanel p { margin: 0; font-size: 13px; color: var(--ink-soft); }
+.recpanel .btn { width: 100%; }
+.recpanel .btn[disabled] { opacity: 0.5; cursor: default; }
+.recpanel .ghost { background: transparent; color: var(--ink-soft); border: 1px solid var(--card-line); }
+.simtoast { position: absolute; left: 50%; bottom: 44px; transform: translateX(-50%); background: rgba(20, 10, 30, 0.88); color: var(--ink); font-size: 13px; padding: 6px 14px; border-radius: 999px; pointer-events: none; z-index: 3; white-space: nowrap; max-width: calc(100% - 24px); overflow: hidden; text-overflow: ellipsis; }
+/*pantalla agrandada: fullscreen real o, si el navegador no lo permite, ocupa toda la ventana*/
+.sim.expanded { position: fixed; inset: 0; z-index: 50; width: 100vw; height: 100vh; height: 100dvh; max-height: none; aspect-ratio: auto; margin: 0; border-radius: 0; border: 0; }
+.sim:fullscreen { width: 100vw; height: 100vh; max-height: none; aspect-ratio: auto; margin: 0; border-radius: 0; border: 0; }
+
+/*sliders de pildora*/
+.sliders { grid-area: sliders; display: grid; gap: 14px; padding-inline: 24px; }
+.pillrow { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 10px; align-items: center; }
+.pillrow.nobtn { grid-template-columns: minmax(0, 1fr); padding-left: 50px; }
+.pillcap { grid-column: 1 / -1; text-align: center; font-weight: 800; font-size: 17px; margin-top: -4px; }
+.pillcap output { font-variant-numeric: tabular-nums; color: var(--gold); margin-left: 6px; }
+input.pill { -webkit-appearance: none; appearance: none; width: 100%; height: 34px; background: transparent; margin: 0; cursor: pointer; }
+input.pill::-webkit-slider-runnable-track { height: 34px; background: var(--pill); border-radius: 999px; }
+input.pill::-moz-range-track { height: 34px; background: var(--pill); border-radius: 999px; }
+input.pill::-webkit-slider-thumb { -webkit-appearance: none; width: 42px; height: 42px; margin-top: -4px; border-radius: 50%; background: var(--pill-knob); border: 0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4); }
+input.pill::-moz-range-thumb { width: 42px; height: 42px; border-radius: 50%; background: var(--pill-knob); border: 0; }
+input.pill:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; border-radius: 999px; }
+input.pill:disabled { opacity: 0.5; cursor: default; }
+.play { width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--gold); color: var(--ink-dark); cursor: pointer; display: grid; place-items: center; }
+.play:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.play svg { width: 16px; height: 16px; fill: currentColor; }
+.speed { display: flex; justify-content: center; gap: 6px; font-size: 12px; color: var(--ink-mute); }
+.speed button { font: 700 12px var(--f-body); color: var(--ink-mute); background: transparent; border: 1px solid var(--card-line); border-radius: 999px; padding: 2px 10px; cursor: pointer; }
+.speed button[aria-pressed="true"] { color: var(--ink-dark); background: var(--pill); border-color: var(--pill); }
+.stale { text-align: center; font-size: 13px; color: var(--gold); min-height: 20px; }
+
+/*panel de separacion*/
+.chartbox {
+  grid-area: chart;
+  background: var(--panel);
+  border-radius: 34px;
+  padding: 20px 26px 22px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 250px;
+  gap: 24px;
+}
+.chartbox h2 { margin: 0 0 4px; font-weight: 800; font-size: 20px; }
+.chartbox .sub { margin: 0 0 10px; font-size: 13px; color: var(--ink-soft); }
+.chartwrap { position: relative; height: 220px; min-width: 0; }
+.chartwrap canvas { width: 100%; height: 100%; display: block; cursor: crosshair; }
+.stats { display: grid; gap: 10px; align-content: start; margin: 0; }
+.stats div { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.25); padding-bottom: 6px; }
+.stats dt { font-size: 13px; color: var(--ink-soft); }
+.stats dd { margin: 0; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+/*secciones*/
+.doc { padding-block: 10px 60px; display: grid; gap: 28px; }
+.doc section { background: var(--card); border: 1px solid var(--card-line); border-radius: 22px; padding: 26px clamp(18px, 4vw, 40px); scroll-margin-top: 80px; min-width: 0; }
+.doc h2 { margin: 0 0 12px; font-family: var(--f-display); font-weight: 800; color: var(--gold); font-size: 34px; line-height: 1; }
+.doc h3 { margin: 22px 0 6px; font-size: 18px; font-weight: 800; }
+.doc p, .doc li { max-width: 72ch; color: var(--ink-soft); }
+.doc p { margin: 0 0 10px; }
+.doc strong { color: var(--ink); }
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 36px; }
+.tbl { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 520px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--card-line); vertical-align: top; }
+th { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-mute); font-weight: 700; }
+td:first-child { font-family: var(--f-mono); color: var(--gold); white-space: nowrap; }
+td { color: var(--ink-soft); }
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 14px 0 18px; }
+.flow .node { background: rgba(255, 255, 255, 0.06); border: 1px solid var(--card-line); border-radius: 12px; padding: 8px 14px; font: 600 13px var(--f-mono); }
+.flow .node small { display: block; font: 400 12px var(--f-body); color: var(--ink-mute); }
+.flow .arrow { color: var(--gold); font-weight: 800; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0 0; }
+.tabs button { font: 700 13px var(--f-mono); color: var(--ink-mute); background: transparent; border: 1px solid var(--card-line); border-bottom: 0; border-radius: 10px 10px 0 0; padding: 8px 14px; cursor: pointer; }
+.tabs button[aria-selected="true"] { color: var(--ink); background: var(--code-bg); }
+pre { margin: 0; background: var(--code-bg); border: 1px solid var(--card-line); border-radius: 0 12px 12px 12px; padding: 16px; overflow-x: auto; font: 13px/1.55 var(--f-mono); color: #e8e2f4; max-height: 420px; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 16px; }
+.btn { font: 800 14px var(--f-body); color: var(--ink-dark); background: var(--gold); border: 0; border-radius: 999px; padding: 9px 18px; cursor: pointer; }
+.btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.toast { font-size: 13px; color: var(--gold); }
+.steps { padding-left: 20px; margin: 0; display: grid; gap: 6px; }
+kbd { font: 600 12px var(--f-mono); background: rgba(255, 255, 255, 0.1); border: 1px solid var(--card-line); border-radius: 5px; padding: 1px 6px; color: var(--ink); }
+footer { text-align: center; color: var(--ink-mute); font-size: 13px; padding-block: 0 40px; position: relative; z-index: 1; }
+
+@media (max-width: 900px) {
+  .lab { grid-template-columns: minmax(0, 1fr); grid-template-areas: "title" "sim" "sliders" "params" "chart"; gap: 22px; }
+  .title { padding-left: 0; }
+  .title h1 span + span { margin-left: 0; }
+  .sim { margin-top: 0; aspect-ratio: 4 / 3.4; }
+  .sliders { padding-inline: 0; }
+  .chartbox { grid-template-columns: minmax(0, 1fr); }
+  .cols { grid-template-columns: minmax(0, 1fr); }
+  .nav { margin-right: 0; }
+}
+@media (max-width: 480px) {
+  .wrap { padding-inline: 16px; }
+  .params, .chartbox { border-radius: 24px; padding-inline: 16px; }
+  .prow { grid-template-columns: 120px minmax(0, 1fr) 44px; gap: 8px; }
+  .prow label { font-size: 14px; white-space: normal; line-height: 1.2; }
+  .nav a { font-size: 15px; }
+  .logo { font-size: 18px; }
+  .pillrow.nobtn { padding-left: 0; }
+  .legend { display: none; }
+}
+@media (max-width: 640px) {
+  .tools { top: 46px; right: 10px; }
+  .hint { display: none; }
+  .run { font-size: 13px; }
+}
+html.embed .topbar, html.embed .title { display: none; }
+html.embed .lab { grid-template-areas: "params sim" "params sliders" "chart chart"; padding-top: 20px; }
+html.embed .sim { margin-top: 0; }
+html.embed body { background: var(--space); }
+@media (max-width: 900px) { html.embed .lab { grid-template-areas: "sim" "sliders" "params" "chart"; } }
+</style>
+
+<canvas id="sky" aria-hidden="true"></canvas>
+<div class="nebula" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="Simulador de galaxias, inicio"><span>Simulador</span><span>de galaxias</span></a>
+    <nav class="nav" aria-label="Secciones">
+      <a href="#info">Información</a>
+            <a href="#help">Ayuda</a>
+      <a href="#about">Sobre nosotros</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap" id="top">
+  <div class="lab">
+    <div class="title">
+      <h1><span>Simulador</span><span>de galaxias</span></h1>
+      <p>Choque de dos galaxias de disco con halos de Plummer. Mueve los parámetros y presiona <strong>Correr simulación</strong>: el cálculo corre directo en tu navegador.</p>
+    </div>
+
+    <form class="params" id="params" autocomplete="off">
+      <h2>Parámetros</h2>
+      <div class="prow"><label for="fr">Velocidad radial</label><input class="line" type="range" id="fr" min="0" max="1" step="0.01" value="0.1"><output for="fr" id="fr_o">0.10</output></div>
+      <div class="prow"><label for="ft">Velocidad tangencial</label><input class="line" type="range" id="ft" min="0" max="1" step="0.01" value="0.3"><output for="ft" id="ft_o">0.30</output></div>
+      <div class="prow"><label for="q">Razón de masas</label><input class="line" type="range" id="q" min="0.1" max="1" step="0.05" value="0.5"><output for="q" id="q_o">0.50</output></div>
+      <div class="group-label"><i style="background: var(--g1)"></i>Galaxia 1 · 10¹¹ M☉</div>
+      <div class="prow"><label for="xy1">Ángulo xy</label><input class="line" type="range" id="xy1" min="0" max="180" step="1" value="0"><output for="xy1" id="xy1_o">0°</output></div>
+      <div class="prow"><label for="xz1">Ángulo xz</label><input class="line" type="range" id="xz1" min="0" max="180" step="1" value="0"><output for="xz1" id="xz1_o">0°</output></div>
+      <div class="group-label"><i style="background: var(--g2)"></i>Galaxia 2 · q × 10¹¹ M☉</div>
+      <div class="prow"><label for="xy2">Ángulo xy</label><input class="line" type="range" id="xy2" min="0" max="180" step="1" value="30"><output for="xy2" id="xy2_o">30°</output></div>
+      <div class="prow"><label for="xz2">Ángulo xz</label><input class="line" type="range" id="xz2" min="0" max="180" step="1" value="45"><output for="xz2" id="xz2_o">45°</output></div>
+      <div class="pfoot">
+        <label for="npart">Estrellas por galaxia
+          <select id="npart">
+            <option value="1000">1000</option>
+            <option value="3000" selected>3000</option>
+            <option value="5000">5000</option>
+          </select>
+        </label>
+        <span id="vescOut">V<sub>escap</sub> = – km/s</span>
+      </div>
+    </form>
+
+    <div class="sim" id="sim">
+      <canvas id="view" aria-label="Vista de la simulación. Arrastra para rotar, rueda o pellizco para acercar."></canvas>
+      <div class="views" role="group" aria-label="Vista">
+        <button type="button" data-view="xy" aria-pressed="true">XY</button>
+        <button type="button" data-view="xz" aria-pressed="false">XZ</button>
+        <button type="button" data-view="3d" aria-pressed="false">3D</button>
+      </div>
+      <div class="tools" role="toolbar" aria-label="Herramientas de la pantalla">
+        <button class="tbtn only-exp" id="tPlay" type="button" aria-label="Reproducir" title="Reproducir / pausar"><svg viewBox="0 0 24 24" id="tPlayIcon"><path d="M7 4l13 8-13 8z" fill="currentColor"/></svg></button>
+        <button class="run" id="run" type="button">Correr simulación</button>
+        <button class="tbtn" id="tShot" type="button" aria-label="Sacar captura de pantalla" title="Captura (PNG)"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
+        <button class="tbtn" id="tRec" type="button" aria-label="Grabar la pantalla" title="Grabar (MP4 / GIF)"><svg viewBox="0 0 24 24" id="tRecIcon"><circle cx="12" cy="12" r="6" fill="currentColor" stroke="none"/></svg></button>
+        <button class="tbtn" id="tFull" type="button" aria-label="Agrandar pantalla" title="Agrandar (F)"><svg viewBox="0 0 24 24" id="tFullIcon"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+      </div>
+      <div class="recpill" id="recPill" hidden><i></i><span id="recTime">REC 00:00</span></div>
+      <div class="simtoast" id="simToast" hidden aria-live="polite"></div>
+      <div class="recpanel" id="recPanel" hidden role="dialog" aria-modal="true" aria-labelledby="recTitle">
+        <div class="box">
+          <h3 id="recTitle">Grabación lista</h3>
+          <p id="recInfo"></p>
+          <button class="btn" id="dlVideo" type="button">Descargar video</button>
+          <button class="btn" id="dlGif" type="button">Descargar GIF</button>
+          <button class="btn ghost" id="recClose" type="button">Cerrar</button>
+        </div>
+      </div>
+      <div class="hint">arrastra para rotar · rueda para zoom · doble clic reinicia</div>
+      <div class="hud"><span id="hudT">t = 0 Myr</span><span class="scalebar"><b id="sbar" style="width: 40px"></b><span id="slabel">10 kpc</span></span></div>
+      <div class="legend"><span><i style="background: var(--g1)"></i>Galaxia 1</span><span><i style="background: var(--g2)"></i>Galaxia 2</span><span class="vleg"><i style="background: var(--vrad); border-radius: 2px"></i>V radial</span><span class="vleg"><i style="background: var(--vtan); border-radius: 2px"></i>V tangencial</span></div>
+    </div>
+
+    <div class="sliders">
+      <div class="pillrow">
+        <button class="play" id="play" type="button" aria-label="Reproducir"><svg viewBox="0 0 16 16" id="playIcon"><path d="M4 2l10 6-10 6z"/></svg></button>
+        <input class="pill" type="range" id="time" min="0" max="300" step="1" value="0" aria-label="Tiempo en millones de años">
+        <div class="pillcap">Tiempo [Myr]<output id="time_o">0</output></div>
+      </div>
+      <div class="speed" role="group" aria-label="Velocidad de reproducción">
+        <span>velocidad</span>
+        <button type="button" data-speed="0.5" aria-pressed="false">½×</button>
+        <button type="button" data-speed="1" aria-pressed="true">1×</button>
+        <button type="button" data-speed="2" aria-pressed="false">2×</button>
+        <button type="button" data-speed="4" aria-pressed="false">4×</button>
+      </div>
+      <div class="pillrow nobtn">
+        <input class="pill" type="range" id="sep" min="10" max="80" step="1" value="40" aria-label="Separación inicial entre galaxias en kpc">
+        <div class="pillcap">Separación entre galaxias [kpc]<output id="sep_o">40</output></div>
+      </div>
+      <div class="stale" id="stale" aria-live="polite"></div>
+    </div>
+
+    <section class="chartbox" aria-labelledby="chartTitle">
+      <div style="min-width: 0">
+        <h2 id="chartTitle">Separación de los halos en el tiempo</h2>
+        <p class="sub">Distancia entre los centros de ambos halos [kpc] versus tiempo [Myr], cada 10 Myr. Haz clic en el gráfico para ir a ese instante.</p>
+        <div class="chartwrap"><canvas id="chart" aria-label="Gráfico de separación en kpc versus tiempo en Myr"></canvas></div>
+      </div>
+      <dl class="stats" id="stats">
+        <div><dt>Separación inicial</dt><dd id="st_sep0">–</dd></div>
+        <div><dt>Separación actual</dt><dd id="st_sep">–</dd></div>
+        <div><dt>Primer pericentro</dt><dd id="st_peri">–</dd></div>
+        <div><dt>Separación mínima</dt><dd id="st_min">–</dd></div>
+        <div><dt>Pericentros en 3 Gyr</dt><dd id="st_np">–</dd></div>
+        <div><dt>V<sub>rel</sub> inicial</dt><dd id="st_vrel">–</dd></div>
+      </dl>
+    </section>
+  </div>
+
+  <div class="doc">
+    <section id="info" aria-labelledby="infoT">
+      <h2 id="infoT">Información</h2>
+      <p>El simulador modela el encuentro de dos galaxias de disco con un <strong>N-cuerpos restringido</strong>. Cada galaxia es un halo de Plummer (masa puntual suavizada) que atrae a sus estrellas y al otro halo. Las estrellas son partículas de prueba: sienten la gravedad de los dos halos, pero no se atraen entre sí ni afectan a los halos.</p>
+      <p>Aun así, el modelo reproduce lo más llamativo de una fusión: al pasar por el pericentro, la fuerza de marea del otro halo arranca estrellas de los bordes del disco y forma <strong>colas de marea</strong> y <strong>puentes</strong> entre las galaxias.</p>
+      <div class="cols">
+        <div>
+          <h3>Unidades (G = 1)</h3>
+          <p>Masa en M☉, largo en pc, velocidad en 65.8 m/s y tiempo en 14.9 Myr. La simulación avanza 3000 pasos de 1 Myr (3 Gyr en total) y guarda una imagen cada 10 Myr.</p>
+        </div>
+        <div>
+          <h3>Potencial de Plummer</h3>
+          <p>La masa encerrada es M(r) = M r³ / (r² + a²)^{3/2}, con largo de escala a = 15 kpc, que también es el suavizado del integrador. Las estrellas parten en órbitas circulares con v<sub>c</sub> = √(G M(r) / r).</p>
+        </div>
+      </div>
+      <h3>Parámetros</h3>
+      <div class="tbl">
+        <table>
+          <thead><tr><th>Parámetro</th><th>Significado</th><th>Rango</th></tr></thead>
+          <tbody>
+            <tr><td>Velocidad radial</td><td>Velocidad radial relativa inicial (acercamiento) como fracción de la velocidad de escape del par, V<sub>escap</sub> = √(2 G M / d).</td><td>0 – 1</td></tr>
+            <tr><td>Velocidad tangencial</td><td>Velocidad tangencial relativa inicial. Controla el momento angular de la órbita y qué tan cerca pasan.</td><td>0 – 1</td></tr>
+            <tr><td>Razón de masas</td><td>q = M₂ / M₁, con M₁ = 10¹¹ M☉. El radio del disco escala como 10 kpc · √(M / 10¹¹ M☉).</td><td>0.1 – 1</td></tr>
+            <tr><td>Ángulo xy</td><td>Giro del disco en torno al eje z, antes de inclinarlo.</td><td>0° – 180°</td></tr>
+            <tr><td>Ángulo xz</td><td>Inclinación del disco en torno al eje y. 0° es un disco en el plano de la órbita; 180° lo deja retrógrado.</td><td>0° – 180°</td></tr>
+            <tr><td>Separación</td><td>Distancia inicial entre los centros de los halos, que parten en torno al centro de masa.</td><td>10 – 80 kpc</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Límites del modelo</h3>
+      <p>Los halos son rígidos y no hay fricción dinámica, así que sus centros no se funden: siguen orbitando entre sí con pericentros periódicos. Por eso el gráfico de separación oscila en vez de caer a cero. Lo que sí se transforma son los discos de estrellas.</p>
+    </section>
+
+
+    <section id="help" aria-labelledby="helpT">
+      <h2 id="helpT">Ayuda</h2>
+      <div class="cols">
+        <div>
+          <h3>Correr una simulación</h3>
+          <ol class="steps">
+            <li>Ajusta los parámetros y la separación. La pantalla muestra al tiro los discos en t = 0, con flechas para la velocidad radial (rosada, eje x) y tangencial (verde, eje y) de cada galaxia.</li>
+            <li>Presiona <strong>Correr simulación</strong>. El cálculo de 3 Gyr tarda menos de un segundo y luego se reproduce.</li>
+            <li>Mueve el slider de <strong>Tiempo</strong> o haz clic en el gráfico para ir a cualquier instante.</li>
+            <li>Con los botones de la pantalla puedes sacar una <strong>captura</strong> (PNG), <strong>grabar</strong> lo que ves (MP4 o GIF) y <strong>agrandar</strong> la pantalla.</li>
+          </ol>
+        </div>
+        <div>
+          <h3>Controles</h3>
+          <p>Arrastra la pantalla para rotar la vista, usa la rueda o pellizca para acercar, y haz doble clic para volver a la vista inicial. <strong>XY</strong> mira el plano de la órbita desde arriba, <strong>XZ</strong> de canto y <strong>3D</strong> en perspectiva oblicua.</p>
+          <p>Teclado: <kbd>Espacio</kbd> reproduce o pausa, <kbd>←</kbd> <kbd>→</kbd> avanzan 10 Myr, <kbd>F</kbd> agranda la pantalla y <kbd>Esc</kbd> la vuelve a su tamaño.</p>
+        </div>
+      </div>
+      <h3>Qué probar</h3>
+      <p>Con Velocidad tangencial cerca de 0.3 y Ángulo xz = 0° en ambas galaxias (discos prógrados) salen colas de marea largas. Sube Ángulo xz de la galaxia 2 a 180° para un disco retrógrado: las colas casi desaparecen. Con Velocidad radial y Velocidad tangencial en 0, el choque es frontal.</p>
+    </section>
+    <section id="about" aria-labelledby="aboutT">
+      <h2 id="aboutT">Sobre nosotros</h2>
+      <p>Este simulador nace de la tesina de Licenciatura en Astrofísica de <strong>Valentina Cortés Flores</strong>, guiada por el profesor <strong>Rory Smith</strong>, en la <strong>Universidad Técnica Federico Santa María</strong> (Valparaíso, Chile).</p>
+      <p>Queremos que cualquier persona, sin instalar nada ni saber programar, pueda armar su propio choque de galaxias y descubrir por qué se forman colas de marea, anillos o corrientes de estrellas. Lo pensamos como una herramienta para la sala de clases, la divulgación y la ciencia ciudadana.</p>
+      <h3>Contacto</h3>
+      <p><a href="mailto:valentina.cortesfl@usm.cl">valentina.cortesfl@usm.cl</a></p>
+    </section>
+  </div>
+</main>
+<footer>Simulador de galaxias · N-cuerpos restringido con halos de Plummer</footer>
+
+<script>
+//nucleo fisico: condiciones iniciales + integrador
+//unidades G=1: masa Msol, largo pc, velocidad 65.8 m/s, tiempo 14.9 Myr
+const PHYS = {
+  G: 1.0,
+  vsim: 65.8,     //m/s
+  tsim: 14.9,     //Myr
+  a: 15000.0,     //pc, largo de escala plummer = lsoft
+  Mref: 1e11,     //Msol
+  mpart: 1e5,     //Msol
+  tmx: 3000.0,    //Myr
+  nstp: 3000,
+  nout: 10
+};
+
+function mulberry32(seed) {
+  let s = seed >>> 0;
+  return function () {
+    s = (s + 0x6D2B79F5) >>> 0;
+    let t = s;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function mPlummer(r, Mtot, a) {
+  return Mtot * r * r * r / Math.pow(r * r + a * a, 1.5);
+}
+
+//rotacion 1 en torno a z (phi_xy), rotacion 2 en torno a y (phi_xz)
+function rotar(v, pxy, pxz) {
+  const c1 = Math.cos(pxy), s1 = Math.sin(pxy), c2 = Math.cos(pxz), s2 = Math.sin(pxz);
+  const xr = v[0] * c1 - v[1] * s1, yr = v[0] * s1 + v[1] * c1, zr = v[2];
+  return [xr * c2 + zr * s2, yr, -xr * s2 + zr * c2];
+}
+
+//p: {q, sepKpc, fr, ft, xy1, xz1, xy2, xz2 (grados), npart, seed}
+function makeICs(p) {
+  const rnd = mulberry32(p.seed || 1);
+  const G = PHYS.G, a = PHYS.a;
+  const M1 = PHYS.Mref, M2 = p.q * PHYS.Mref, M = M1 + M2;
+  const sep = p.sepKpc * 1000;
+  const vesc = Math.sqrt(2 * G * M / sep);
+  const vt = p.ft * vesc, vr = p.fr * vesc;
+  //halos en torno al centro de masa, separacion real = sep
+  const h = {
+    m: [M1, M2],
+    x: [-(M2 / M) * sep, (M1 / M) * sep], y: [0, 0], z: [0, 0],
+    //vr > 0: se acercan; vt: orbita antihoraria
+    vx: [(M2 / M) * vr, -(M1 / M) * vr],
+    vy: [-(M2 / M) * vt, (M1 / M) * vt],
+    vz: [0, 0]
+  };
+  const n = p.npart, N = 2 * n;
+  const s = {
+    n: N, gal: new Uint8Array(N),
+    x: new Float64Array(N), y: new Float64Array(N), z: new Float64Array(N),
+    vx: new Float64Array(N), vy: new Float64Array(N), vz: new Float64Array(N)
+  };
+  const ang = [[p.xy1, p.xz1], [p.xy2, p.xz2]].map(v => v.map(d => d * Math.PI / 180));
+  for (let g = 0; g < 2; g++) {
+    const Mg = h.m[g];
+    const Rmax = 10000 * Math.sqrt(Mg / PHYS.Mref);
+    for (let i = 0; i < n; i++) {
+      const k = g * n + i;
+      const r = Rmax * Math.sqrt(rnd()) + 1e-9;
+      const th = 2 * Math.PI * rnd();
+      const x = r * Math.cos(th), y = r * Math.sin(th);
+      const vc = Math.sqrt(G * mPlummer(r, Mg, a) / r);
+      const pos = rotar([x, y, 0], ang[g][0], ang[g][1]);
+      const vel = rotar([-(y / r) * vc, (x / r) * vc, 0], ang[g][0], ang[g][1]);
+      s.gal[k] = g;
+      s.x[k] = pos[0] + h.x[g]; s.y[k] = pos[1] + h.y[g]; s.z[k] = pos[2];
+      s.vx[k] = vel[0] + h.vx[g]; s.vy[k] = vel[1] + h.vy[g]; s.vz[k] = vel[2];
+    }
+  }
+  //restar velocidad del centro de masa (halos + estrellas)
+  let mt = M, px = M1 * h.vx[0] + M2 * h.vx[1], py = M1 * h.vy[0] + M2 * h.vy[1], pz = 0;
+  for (let k = 0; k < N; k++) { px += PHYS.mpart * s.vx[k]; py += PHYS.mpart * s.vy[k]; pz += PHYS.mpart * s.vz[k]; mt += PHYS.mpart; }
+  const cx = px / mt, cy = py / mt, cz = pz / mt;
+  for (let g = 0; g < 2; g++) { h.vx[g] -= cx; h.vy[g] -= cy; h.vz[g] -= cz; }
+  for (let k = 0; k < N; k++) { s.vx[k] -= cx; s.vy[k] -= cy; s.vz[k] -= cz; }
+  return { h, s, vesc };
+}
+
+//un paso: estrellas con halos del paso anterior, luego halos en orden
+function stepOnce(h, s, dt, eps2) {
+  const nh = h.m.length, N = s.n;
+  const hx = h.x, hy = h.y, hz = h.z, hm = h.m;
+  const x = s.x, y = s.y, z = s.z, vx = s.vx, vy = s.vy, vz = s.vz;
+  for (let j = 0; j < N; j++) {
+    let ax = 0, ay = 0, az = 0;
+    for (let i = 0; i < nh; i++) {
+      const dx = x[j] - hx[i], dy = y[j] - hy[i], dz = z[j] - hz[i];
+      const r2 = dx * dx + dy * dy + dz * dz + eps2;
+      const f = hm[i] / (r2 * Math.sqrt(r2));
+      ax -= f * dx; ay -= f * dy; az -= f * dz;
+    }
+    vx[j] += ax * dt; vy[j] += ay * dt; vz[j] += az * dt;
+    x[j] += vx[j] * dt; y[j] += vy[j] * dt; z[j] += vz[j] * dt;
+  }
+  for (let j = 0; j < nh; j++) {
+    let ax = 0, ay = 0, az = 0;
+    for (let i = 0; i < nh; i++) {
+      if (i === j) continue;
+      const dx = hx[j] - hx[i], dy = hy[j] - hy[i], dz = hz[j] - hz[i];
+      const r2 = dx * dx + dy * dy + dz * dz + eps2;
+      const f = hm[i] / (r2 * Math.sqrt(r2));
+      ax -= f * dx; ay -= f * dy; az -= f * dz;
+    }
+    h.vx[j] += ax * dt; h.vy[j] += ay * dt; h.vz[j] += az * dt;
+    hx[j] += h.vx[j] * dt; hy[j] += h.vy[j] * dt; hz[j] += h.vz[j] * dt;
+  }
+}
+
+if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, mulberry32 };
+
+</script>
+<script>
+(function () {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const NSNAP = PHYS.nstp / PHYS.nout + 1;
+  const DT = (PHYS.tmx / PHYS.tsim) / PHYS.nstp;
+  const EPS2 = PHYS.a * PHYS.a;
+  const KMS = PHYS.vsim / 1000;
+  const reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  //estado
+  const P = { fr: 0.1, ft: 0.3, q: 0.5, xy1: 0, xz1: 0, xy2: 30, xz2: 45, sepKpc: 40, npart: 3000, seed: 20260928 };
+  let ic = null;          //condiciones iniciales actuales
+  let snaps = null;       //Float32Array nsnap*N*3
+  let hsnap = null;       //Float32Array nsnap*6
+  let computed = 0;       //snapshots listos
+  let N = 0, gal = null, bins = null;
+  let frame = 0, playhead = 0, playing = false, speed = 1;
+  let dirty = false, computing = false, job = 0;
+  let cam = { yaw: 0, pitch: 0, zoom: 1 };
+  let lastScale = { L: 10, px: 100, t: 0 };
+  let showArrowsLegend = false;
+
+  //cielo de fondo
+  function drawSky() {
+    const c = $("sky"), d = Math.min(2, devicePixelRatio || 1);
+    c.width = innerWidth * d; c.height = innerHeight * d;
+    const g = c.getContext("2d"), r = mulberry32(99);
+    const n = Math.round(innerWidth * innerHeight / 2600);
+    for (let i = 0; i < n; i++) {
+      const s = r() < 0.93 ? 0.6 + r() * 0.8 : 1.4 + r() * 1.3;
+      g.globalAlpha = 0.25 + r() * 0.7;
+      g.fillStyle = r() < 0.15 ? "#cfe0ff" : "#ffffff";
+      g.beginPath(); g.arc(r() * c.width, r() * c.height, s * d * 0.6, 0, 6.283); g.fill();
+    }
+  }
+
+  //colores por galaxia y radio inicial (centro mas claro)
+  const PAL = [
+    ["rgba(255,244,214,A)", "rgba(255,214,140,A)", "rgba(255,180,96,A)", "rgba(240,130,80,A)"],
+    ["rgba(230,240,255,A)", "rgba(170,205,255,A)", "rgba(125,170,255,A)", "rgba(150,120,255,A)"]
+  ];
+
+  function readParams() {
+    for (const k of ["fr", "ft", "q", "xy1", "xz1", "xy2", "xz2"]) P[k] = parseFloat($(k).value);
+    P.sepKpc = parseFloat($("sep").value);
+    P.npart = parseInt($("npart").value, 10);
+  }
+  function showParamValues() {
+    $("fr_o").textContent = P.fr.toFixed(2);
+    $("ft_o").textContent = P.ft.toFixed(2);
+    $("q_o").textContent = P.q.toFixed(2);
+    for (const k of ["xy1", "xz1", "xy2", "xz2"]) $(k + "_o").textContent = P[k] + "°";
+    $("sep_o").textContent = P.sepKpc;
+  }
+
+  //genera ics y snapshot 0
+  function buildICs() {
+    ic = makeICs(P);
+    const s = ic.s; N = s.n; gal = s.gal;
+    //bins de color por radio relativo al halo
+    bins = [[], [], [], [], [], [], [], []];
+    const R = [10000, 10000 * Math.sqrt(P.q)];
+    for (let k = 0; k < N; k++) {
+      const g = gal[k];
+      const dx = s.x[k] - ic.h.x[g], dy = s.y[k] - ic.h.y[g], dz = s.z[k];
+      const f = Math.sqrt(dx * dx + dy * dy + dz * dz) / R[g];
+      const b = f < 0.25 ? 0 : f < 0.5 ? 1 : f < 0.8 ? 2 : 3;
+      bins[g * 4 + b].push(k);
+    }
+    bins = bins.map(a => Int32Array.from(a));
+    snaps = new Float32Array(NSNAP * N * 3);
+    hsnap = new Float32Array(NSNAP * 6);
+    storeSnap(0, ic.h, s);
+    computed = 1;
+    $("vescOut").innerHTML = "V<sub>escap</sub> = " + (ic.vesc * KMS).toFixed(0) + " km/s";
+  }
+  function storeSnap(i, h, s) {
+    const o = i * N * 3;
+    for (let k = 0; k < N; k++) { snaps[o + 3 * k] = s.x[k]; snaps[o + 3 * k + 1] = s.y[k]; snaps[o + 3 * k + 2] = s.z[k]; }
+    const ho = i * 6;
+    hsnap[ho] = h.x[0]; hsnap[ho + 1] = h.y[0]; hsnap[ho + 2] = h.z[0];
+    hsnap[ho + 3] = h.x[1]; hsnap[ho + 4] = h.y[1]; hsnap[ho + 5] = h.z[1];
+  }
+
+  //calculo por bloques para no congelar la pagina
+  function compute(autoplay) {
+    readParams(); buildICs();
+    const my = ++job;
+    const h = { m: ic.h.m.slice(), x: ic.h.x.slice(), y: ic.h.y.slice(), z: ic.h.z.slice(), vx: ic.h.vx.slice(), vy: ic.h.vy.slice(), vz: ic.h.vz.slice() };
+    const s = { n: N, x: ic.s.x.slice(), y: ic.s.y.slice(), z: ic.s.z.slice(), vx: ic.s.vx.slice(), vy: ic.s.vy.slice(), vz: ic.s.vz.slice() };
+    let stp = 0;
+    computing = true; dirty = false;
+    $("stale").textContent = "";
+    $("run").setAttribute("data-busy", "");
+    $("time").disabled = false;
+    frame = 0; playhead = 0;
+    setPlaying(!!autoplay);
+    function chunk() {
+      if (my !== job) return;
+      const t0 = performance.now();
+      while (stp < PHYS.nstp && performance.now() - t0 < 14) {
+        stp++;
+        stepOnce(h, s, DT, EPS2);
+        if (stp % PHYS.nout === 0) { storeSnap(stp / PHYS.nout, h, s); computed = stp / PHYS.nout + 1; }
+      }
+      $("run").textContent = stp < PHYS.nstp ? "Calculando " + Math.round(100 * stp / PHYS.nstp) + "%" : "Correr simulación";
+      if (stp < PHYS.nstp) requestAnimationFrame(chunk);
+      else {
+        computing = false; $("run").removeAttribute("data-busy");
+        updateStats(); drawChart();
+        if (!autoplay && !playing) { setFrame(initialFrame ?? frame); initialFrame = null; }
+      }
+      drawChart();
+    }
+    requestAnimationFrame(chunk);
+  }
+  let initialFrame = null;
+
+  //cambio de parametros: vista previa en t=0
+  function onParam() {
+    readParams(); showParamValues();
+    job++; computing = false; $("run").removeAttribute("data-busy"); $("run").textContent = "Correr simulación";
+    buildICs();
+    dirty = true; setPlaying(false);
+    frame = 0; playhead = 0;
+    $("time").value = 0; $("time").disabled = true; $("time_o").textContent = "0";
+    $("stale").textContent = "Parámetros nuevos: presiona Correr simulación";
+    updateStats(); drawChart(); render();
+  }
+
+  //camara
+  const VIEWS = { xy: [0, 0], xz: [0, 90], "3d": [-35, 58] };
+  function setView(v) {
+    cam.yaw = VIEWS[v][0]; cam.pitch = VIEWS[v][1];
+    document.querySelectorAll(".views button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.view === v)));
+    render();
+  }
+  function clearViewPress() { document.querySelectorAll(".views button").forEach(b => b.setAttribute("aria-pressed", "false")); }
+
+  const view = $("view"), ctx = view.getContext("2d");
+  let W = 0, H = 0, DPR = 1;
+  function resize() {
+    DPR = Math.min(2, devicePixelRatio || 1);
+    const r = view.getBoundingClientRect();
+    W = Math.max(1, Math.round(r.width * DPR)); H = Math.max(1, Math.round(r.height * DPR));
+    view.width = W; view.height = H;
+    render();
+  }
+
+  function render() {
+    if (!snaps) return;
+    const f = Math.min(frame, computed - 1);
+    const o = f * N * 3;
+    ctx.globalCompositeOperation = "source-over";
+    ctx.fillStyle = "#1c1921"; ctx.fillRect(0, 0, W, H);
+    const halfKpc = 42 / cam.zoom;                     //semiancho visible en kpc
+    const sc = (Math.min(W, H) / 2) / (halfKpc * 1000);  //px por pc
+    const cx = W / 2, cy = H / 2;
+    const cyw = Math.cos(cam.yaw * Math.PI / 180), syw = Math.sin(cam.yaw * Math.PI / 180);
+    const cp = Math.cos(cam.pitch * Math.PI / 180), sp = Math.sin(cam.pitch * Math.PI / 180);
+    const pt = Math.max(1, 1.3 * DPR);
+    const alpha = Math.min(0.8, 0.42 * Math.sqrt(3000 / (N / 2)));
+    ctx.globalCompositeOperation = "lighter";
+    for (let b = 0; b < 8; b++) {
+      const idx = bins[b];
+      ctx.fillStyle = PAL[b >> 2][b & 3].replace("A", (alpha * (b & 3 ? 1 : 0.8)).toFixed(3));
+      for (let n = 0; n < idx.length; n++) {
+        const k = idx[n], p = o + 3 * k;
+        const x = snaps[p], y = snaps[p + 1], z = snaps[p + 2];
+        const x1 = x * cyw - y * syw, y1 = x * syw + y * cyw;
+        const u = y1 * cp + z * sp;
+        const X = cx + x1 * sc, Y = cy - u * sc;
+        if (X < -2 || Y < -2 || X > W + 2 || Y > H + 2) continue;
+        ctx.fillRect(X, Y, pt, pt);
+      }
+    }
+    ctx.globalCompositeOperation = "source-over";
+    //orbitas de los halos
+    const proj = (i, g) => {
+      const q = i * 6 + g * 3, x = hsnap[q], y = hsnap[q + 1], z = hsnap[q + 2];
+      const x1 = x * cyw - y * syw, y1 = x * syw + y * cyw;
+      return [cx + x1 * sc, cy - (y1 * cp + z * sp) * sc];
+    };
+    for (let g = 0; g < 2; g++) {
+      ctx.strokeStyle = g ? "rgba(134,180,255,0.55)" : "rgba(255,182,92,0.55)";
+      ctx.lineWidth = 1.2 * DPR;
+      ctx.beginPath();
+      for (let i = 0; i <= f; i++) { const p = proj(i, g); i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); }
+      ctx.stroke();
+      const p = proj(f, g);
+      ctx.beginPath(); ctx.arc(p[0], p[1], 5 * DPR, 0, 6.283); ctx.stroke();
+    }
+    //flechas de velocidad inicial (solo en t = 0)
+    const arrowsOn = f === 0 && !!ic;
+    if (arrowsOn) drawVelArrows(proj, cyw, syw, cp, sp);
+    document.querySelectorAll(".vleg").forEach(el => { el.hidden = !arrowsOn; });
+    showArrowsLegend = arrowsOn;
+    drawAxes(cx, cyw, syw, cp, sp);
+    //hud
+    const t = f * PHYS.nout * DT * PHYS.tsim;
+    $("hudT").textContent = "t = " + Math.round(t) + " Myr";
+    const nice = [1, 2, 5, 10, 20, 50];
+    let L = nice[0];
+    for (const v of nice) if (v * 1000 * sc / DPR <= 110) L = v;
+    $("sbar").style.width = Math.round(L * 1000 * sc / DPR) + "px";
+    lastScale = { L, px: L * 1000 * sc, t };
+    $("slabel").textContent = L + " kpc";
+  }
+
+  //indicador de ejes (x, y, z) en la esquina, para saber desde donde se mira
+  function drawAxes(cx, cyw, syw, cp, sp) {
+    const L = 20 * DPR, ox = W - 40 * DPR, oy = H - 72 * DPR;
+    const ax = [["x", 1, 0, 0, "#ff8fa3"], ["y", 0, 1, 0, "#7ef0b8"], ["z", 0, 0, 1, "#9cc2ff"]];
+    ctx.font = "700 " + Math.round(11 * DPR) + "px 'JetBrains Mono', monospace";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.lineWidth = 2 * DPR; ctx.lineCap = "round";
+    for (const [n, x, y, z, col] of ax) {
+      const x1 = x * cyw - y * syw, y1 = x * syw + y * cyw;
+      const u = y1 * cp + z * sp, d = -y1 * sp + z * cp;   //d > 0: el eje apunta hacia quien mira
+      const ex = ox + x1 * L, ey = oy - u * L;
+      ctx.globalAlpha = d < -0.2 ? 0.45 : 1;
+      ctx.strokeStyle = col; ctx.fillStyle = col;
+      ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ex, ey); ctx.stroke();
+      ctx.fillText(n, ox + x1 * (L + 9 * DPR), oy - u * (L + 9 * DPR));
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  //flechas: radial sobre el eje x y tangencial sobre el eje y, largo proporcional a v/vescap
+  function arrow(x0, y0, x1, y1, col, label, side) {
+    const dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy);
+    if (L < 4 * DPR) return;
+    const ux = dx / L, uy = dy / L, hd = Math.min(12 * DPR, L * 0.5), hw = hd * 0.55;
+    ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 3 * DPR; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1 - ux * hd * 0.8, y1 - uy * hd * 0.8); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x1, y1);
+    ctx.lineTo(x1 - ux * hd - uy * hw, y1 - uy * hd + ux * hw);
+    ctx.lineTo(x1 - ux * hd + uy * hw, y1 - uy * hd - ux * hw);
+    ctx.closePath(); ctx.fill();
+    ctx.font = "700 " + Math.round(12 * DPR) + "px Nunito, system-ui, sans-serif";
+    ctx.lineWidth = 3 * DPR; ctx.strokeStyle = "rgba(20,15,30,0.85)";
+    let tx, ty;
+    if (side) {
+      //etiqueta al lado de la flecha (arriba si side<0, abajo si side>0)
+      ctx.textAlign = "center"; ctx.textBaseline = side < 0 ? "bottom" : "top";
+      tx = (x0 + x1) / 2; ty = (y0 + y1) / 2 + side * 8 * DPR;
+    } else {
+      ctx.textAlign = ux > 0.3 ? "left" : ux < -0.3 ? "right" : "center";
+      ctx.textBaseline = uy > 0.3 ? "top" : uy < -0.3 ? "bottom" : "middle";
+      tx = x1 + ux * 6 * DPR; ty = y1 + uy * 6 * DPR;
+    }
+    ctx.strokeText(label, tx, ty); ctx.fillText(label, tx, ty);
+  }
+  function drawVelArrows(proj, cyw, syw, cp, sp) {
+    const K = 0.9 * Math.min(W, H) / ic.vesc;   //px por unidad de velocidad (vescap -> 90% del alto)
+    const toScr = (vx, vy) => { const x1 = vx * cyw - vy * syw, y1 = vx * syw + vy * cyw; return [x1 * K, -(y1 * cp) * K]; };
+    const css = getComputedStyle(document.documentElement);
+    const cR = css.getPropertyValue("--vrad").trim() || "#ff6b8a", cT = css.getPropertyValue("--vtan").trim() || "#5ee8a8";
+    for (let g = 0; g < 2; g++) {
+      const p = proj(0, g), vr = ic.h.vx[g], vt = ic.h.vy[g];
+      const a = toScr(vr, 0), b = toScr(0, vt);
+      arrow(p[0], p[1], p[0] + a[0], p[1] + a[1], cR, "v rad " + Math.abs(vr * KMS).toFixed(0) + " km/s", b[1] > 0 ? -1 : 1);
+      arrow(p[0], p[1], p[0] + b[0], p[1] + b[1], cT, "v tan " + Math.abs(vt * KMS).toFixed(0) + " km/s");
+    }
+  }
+
+  //separacion
+  function sepAt(i) {
+    const q = i * 6;
+    return Math.hypot(hsnap[q + 3] - hsnap[q], hsnap[q + 4] - hsnap[q + 1], hsnap[q + 5] - hsnap[q + 2]) / 1000;
+  }
+  function tAt(i) { return i * PHYS.nout * DT * PHYS.tsim; }
+  function pericenters() {
+    const out = [];
+    for (let i = 1; i < computed - 1; i++) { const s = sepAt(i); if (s < sepAt(i - 1) && s <= sepAt(i + 1)) out.push(i); }
+    return out;
+  }
+  function updateStats() {
+    const f = Math.min(frame, computed - 1);
+    $("st_sep0").textContent = sepAt(0).toFixed(1) + " kpc";
+    $("st_sep").textContent = sepAt(f).toFixed(1) + " kpc";
+    const vrel = Math.hypot(ic.h.vx[1] - ic.h.vx[0], ic.h.vy[1] - ic.h.vy[0]) * KMS;
+    $("st_vrel").textContent = vrel.toFixed(0) + " km/s";
+    if (dirty || computed < NSNAP) { for (const id of ["st_peri", "st_min", "st_np"]) $(id).textContent = "–"; return; }
+    const pk = pericenters();
+    let mi = 0; for (let i = 1; i < computed; i++) if (sepAt(i) < sepAt(mi)) mi = i;
+    $("st_peri").textContent = pk.length ? Math.round(tAt(pk[0])) + " Myr" : "no ocurre";
+    $("st_min").textContent = sepAt(mi).toFixed(1) + " kpc";
+    $("st_np").textContent = String(pk.length);
+  }
+
+  //grafico de separacion
+  const chart = $("chart"), cctx = chart.getContext("2d");
+  let CW = 0, CH = 0, CD = 1;
+  const PAD = { l: 44, r: 12, t: 10, b: 28 };
+  function resizeChart() {
+    CD = Math.min(2, devicePixelRatio || 1);
+    const r = chart.getBoundingClientRect();
+    CW = r.width; CH = r.height;
+    chart.width = Math.round(CW * CD); chart.height = Math.round(CH * CD);
+    drawChart();
+  }
+  function drawChart() {
+    if (!hsnap || !CW) return;
+    const g = cctx;
+    g.setTransform(CD, 0, 0, CD, 0, 0);
+    g.clearRect(0, 0, CW, CH);
+    const pw = CW - PAD.l - PAD.r, ph = CH - PAD.t - PAD.b;
+    const n = dirty ? 1 : computed;
+    let ymax = 0; for (let i = 0; i < n; i++) ymax = Math.max(ymax, sepAt(i));
+    ymax = Math.max(20, Math.ceil(ymax * 1.1 / 10) * 10);
+    const X = t => PAD.l + (t / PHYS.tmx) * pw, Y = s => PAD.t + ph - (s / ymax) * ph;
+    //grilla
+    g.font = "600 11px Nunito, system-ui, sans-serif";
+    g.fillStyle = "rgba(255,255,255,0.8)"; g.strokeStyle = "rgba(255,255,255,0.18)"; g.lineWidth = 1;
+    const ystep = ymax > 60 ? 20 : 10;
+    g.textAlign = "right"; g.textBaseline = "middle";
+    for (let v = 0; v <= ymax; v += ystep) { g.beginPath(); g.moveTo(PAD.l, Y(v)); g.lineTo(PAD.l + pw, Y(v)); g.stroke(); g.fillText(v, PAD.l - 8, Y(v)); }
+    g.textAlign = "center"; g.textBaseline = "top";
+    for (let t = 0; t <= PHYS.tmx; t += 500) g.fillText(t, X(t), PAD.t + ph + 8);
+    g.save(); g.translate(12, PAD.t + ph / 2); g.rotate(-Math.PI / 2); g.textBaseline = "middle"; g.fillText("kpc", 0, 0); g.restore();
+    if (dirty) {
+      g.fillStyle = "rgba(255,255,255,0.9)"; g.textAlign = "center"; g.textBaseline = "middle"; g.font = "700 14px Nunito, system-ui, sans-serif";
+      g.fillText("Presiona Correr simulación para calcular la órbita", PAD.l + pw / 2, PAD.t + ph / 2);
+      return;
+    }
+    //area y linea
+    g.beginPath(); g.moveTo(X(0), Y(0));
+    for (let i = 0; i < n; i++) g.lineTo(X(tAt(i)), Y(sepAt(i)));
+    g.lineTo(X(tAt(n - 1)), Y(0)); g.closePath();
+    g.fillStyle = "rgba(245,214,58,0.16)"; g.fill();
+    g.beginPath();
+    for (let i = 0; i < n; i++) { const x = X(tAt(i)), y = Y(sepAt(i)); i ? g.lineTo(x, y) : g.moveTo(x, y); }
+    g.strokeStyle = "#f5d63a"; g.lineWidth = 2; g.stroke();
+    //pericentros
+    if (computed === NSNAP) {
+      g.fillStyle = "#ffffff";
+      for (const i of pericenters()) { g.beginPath(); g.arc(X(tAt(i)), Y(sepAt(i)), 3, 0, 6.283); g.fill(); }
+    }
+    //cursor de tiempo
+    const f = Math.min(frame, n - 1), xf = X(tAt(f));
+    g.strokeStyle = "rgba(255,255,255,0.9)"; g.lineWidth = 1; g.setLineDash([3, 3]);
+    g.beginPath(); g.moveTo(xf, PAD.t); g.lineTo(xf, PAD.t + ph); g.stroke(); g.setLineDash([]);
+    g.fillStyle = "#1f1b25"; g.strokeStyle = "#f5d63a"; g.lineWidth = 2;
+    g.beginPath(); g.arc(xf, Y(sepAt(f)), 4.5, 0, 6.283); g.fill(); g.stroke();
+  }
+
+  //tiempo
+  function setFrame(f) {
+    frame = Math.max(0, Math.min(NSNAP - 1, Math.round(f)));
+    playhead = frame;
+    syncTime();
+  }
+  function syncTime() {
+    const f = Math.min(frame, computed - 1);
+    $("time").value = f;
+    $("time_o").textContent = Math.round(tAt(f));
+    updateStats(); drawChart(); render();
+  }
+  function setPlaying(p) {
+    playing = p;
+    $("play").setAttribute("aria-label", p ? "Pausar" : "Reproducir");
+    $("playIcon").innerHTML = p ? '<path d="M3 2h4v12H3zM9 2h4v12H9z"/>' : '<path d="M4 2l10 6-10 6z"/>';
+    $("tPlay").setAttribute("aria-label", p ? "Pausar" : "Reproducir");
+    $("tPlayIcon").innerHTML = p ? '<path d="M6 4h4v16H6zM14 4h4v16h-4z" fill="currentColor" stroke="none"/>' : '<path d="M7 4l13 8-13 8z" fill="currentColor"/>';
+    if (p) requestAnimationFrame(tick);
+  }
+  let last = 0;
+  function tick(ts) {
+    if (!playing) { last = 0; return; }
+    const dtms = last ? Math.min(60, ts - last) : 16;
+    last = ts;
+    //1x = 180 Myr por segundo
+    playhead += speed * 18 * dtms / 1000 * (reduced ? 0.5 : 1);
+    if (playhead >= computed - 1) {
+      playhead = computed - 1;
+      if (!computing) { frame = NSNAP - 1; syncTime(); setPlaying(false); return; }
+    }
+    if (Math.floor(playhead) !== frame) { frame = Math.floor(playhead); syncTime(); }
+    requestAnimationFrame(tick);
+  }
+
+  //eventos
+  document.querySelectorAll("#params input").forEach(el => el.addEventListener("input", onParam));
+  $("npart").addEventListener("change", onParam);
+  $("sep").addEventListener("input", onParam);
+  $("params").addEventListener("submit", e => e.preventDefault());
+  $("run").addEventListener("click", () => compute(true));
+  $("play").addEventListener("click", () => {
+    if (dirty) { compute(true); return; }
+    if (playing) { setPlaying(false); return; }
+    if (frame >= NSNAP - 1) { frame = 0; playhead = 0; syncTime(); }
+    setPlaying(true);
+  });
+  $("time").addEventListener("input", e => { setPlaying(false); setFrame(+e.target.value); });
+  document.querySelectorAll(".speed button").forEach(b => b.addEventListener("click", () => {
+    speed = parseFloat(b.dataset.speed);
+    document.querySelectorAll(".speed button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  }));
+  document.querySelectorAll(".views button").forEach(b => b.addEventListener("click", () => setView(b.dataset.view)));
+
+  //rotar y zoom con puntero
+  const ptrs = new Map(); let pinch0 = 0, zoom0 = 1;
+  view.addEventListener("pointerdown", e => { view.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]); if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch0 = Math.hypot(a[0] - b[0], a[1] - b[1]); zoom0 = cam.zoom; } });
+  view.addEventListener("pointermove", e => {
+    if (!ptrs.has(e.pointerId)) return;
+    const prev = ptrs.get(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+    if (ptrs.size === 2) {
+      const [a, b] = [...ptrs.values()];
+      cam.zoom = Math.max(0.3, Math.min(8, zoom0 * Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch0));
+    } else {
+      //giro libre en 360: la inclinacion ya no tiene tope; si la vista queda de cabeza, el arrastre horizontal se invierte para que se sienta natural
+      const flip = Math.cos(cam.pitch * Math.PI / 180) < 0 ? -1 : 1;
+      cam.yaw = (cam.yaw + flip * (e.clientX - prev[0]) * 0.4) % 360;
+      cam.pitch = ((cam.pitch + (e.clientY - prev[1]) * 0.4) % 360 + 540) % 360 - 180;
+      clearViewPress();
+    }
+    render();
+  });
+  const up = e => ptrs.delete(e.pointerId);
+  view.addEventListener("pointerup", up); view.addEventListener("pointercancel", up);
+  view.addEventListener("wheel", e => { e.preventDefault(); cam.zoom = Math.max(0.3, Math.min(8, cam.zoom * Math.exp(-e.deltaY * 0.0015))); render(); }, { passive: false });
+  view.addEventListener("dblclick", () => { cam.zoom = 1; setView("xy"); });
+
+  //clic en el grafico
+  chart.addEventListener("click", e => {
+    if (dirty) return;
+    const r = chart.getBoundingClientRect();
+    const t = (e.clientX - r.left - PAD.l) / (CW - PAD.l - PAD.r) * PHYS.tmx;
+    setPlaying(false);
+    setFrame(Math.max(0, Math.min(computed - 1, t / (PHYS.nout * DT * PHYS.tsim))));
+  });
+
+  //teclado
+  document.addEventListener("keydown", e => {
+    const tag = (e.target.tagName || "").toLowerCase();
+    if (tag === "input" || tag === "select" || tag === "textarea" || tag === "button") return;
+    if (e.code === "Space") { e.preventDefault(); $("play").click(); }
+    else if (e.key === "f" || e.key === "F") { toggleExpand(); }
+    else if (e.key === "ArrowRight" && !dirty) { setPlaying(false); setFrame(Math.min(computed - 1, frame + 1)); }
+    else if (e.key === "ArrowLeft" && !dirty) { setPlaying(false); setFrame(frame - 1); }
+  });
+
+  //---------- captura, grabacion y pantalla grande ----------
+  const sim = $("sim");
+  let downloads = null;
+  if (window.claude && claude.use) claude.use("downloads").then(d => { downloads = d; }).catch(() => {});
+
+  let toastTimer = 0;
+  function simToast(msg, ms) {
+    const el = $("simToast"); el.textContent = msg; el.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.hidden = true; }, ms || 2600);
+  }
+  //entrega un archivo: capacidad downloads de claude.ai, o enlace directo si la pagina corre suelta
+  async function saveFile(filename, blob) {
+    if (downloads) {
+      try { await downloads.save({ filename, data: blob }); simToast("Guardado: " + filename); }
+      catch (err) {
+        const c = err && err.code;
+        if (c === "declined") simToast("Descarga cancelada");
+        else if (c === "rate_limited") simToast("Espera un momento e inténtalo de nuevo");
+        else if (c === "too_large") simToast("El archivo es muy grande; graba un trozo más corto");
+        else simToast("No se pudo descargar aquí");
+      }
+      return;
+    }
+    try {
+      const url = URL.createObjectURL(blob), a = document.createElement("a");
+      a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      simToast("Descargando " + filename);
+    } catch (err) { simToast("No se pudo descargar aquí"); }
+  }
+
+  //dibuja la pantalla + textos (tiempo, escala, leyenda) en un canvas de exportacion
+  function composite(g, w, h) {
+    g.fillStyle = "#1c1921"; g.fillRect(0, 0, w, h);
+    g.drawImage(view, 0, 0, w, h);
+    const k = w / W * DPR, pad = 14 * k;
+    g.font = "600 " + Math.round(13 * k) + "px 'JetBrains Mono', monospace";
+    g.fillStyle = "rgba(255,255,255,0.85)"; g.textBaseline = "alphabetic"; g.textAlign = "left";
+    g.fillText("t = " + Math.round(lastScale.t) + " Myr", pad, h - pad - 18 * k);
+    const sbw = lastScale.px * w / W;
+    g.fillRect(pad, h - pad - 5 * k, sbw, 2 * k);
+    g.fillText(lastScale.L + " kpc", pad + sbw + 8 * k, h - pad);
+    g.font = "800 " + Math.round(14 * k) + "px 'Baloo 2', Nunito, sans-serif";
+    g.fillStyle = "#f5d63a"; g.textAlign = "right";
+    g.fillText("Simulador de galaxias", w - pad, pad + 14 * k);
+    g.font = "600 " + Math.round(12 * k) + "px Nunito, sans-serif";
+    const items = [["Galaxia 1", "#ffb65c"], ["Galaxia 2", "#86b4ff"]];
+    if (showArrowsLegend) items.push(["V radial", "#ff6b8a"], ["V tangencial", "#5ee8a8"]);
+    let x = w - pad;
+    for (let i = items.length - 1; i >= 0; i--) {
+      g.fillStyle = "rgba(255,255,255,0.85)"; g.fillText(items[i][0], x, h - pad);
+      x -= g.measureText(items[i][0]).width + 6 * k;
+      g.fillStyle = items[i][1]; g.beginPath(); g.arc(x - 4 * k, h - pad - 4 * k, 4 * k, 0, 6.283); g.fill();
+      x -= 20 * k;
+    }
+  }
+  function fileTag() { return "simulador-galaxias-t" + Math.round(lastScale.t) + "Myr"; }
+
+  //captura PNG
+  $("tShot").addEventListener("click", () => {
+    render();
+    const c = document.createElement("canvas"); c.width = W; c.height = H;
+    composite(c.getContext("2d"), W, H);
+    c.toBlob(b => { if (b) saveFile(fileTag() + ".png", b); else simToast("No se pudo crear la imagen"); }, "image/png");
+  });
+
+  //grabacion: video con MediaRecorder (mp4 si el navegador puede, si no webm) + gif con gifenc, en paralelo
+  const REC_MAX_W = 1280, GIF_W = 480, GIF_FPS = 10, GIF_MAX_S = 60;
+  let rec = null;
+  function pickMime() {
+    if (!window.MediaRecorder) return null;
+    const c = ["video/mp4;codecs=avc1.42E01E", "video/mp4;codecs=avc1", "video/mp4", "video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"];
+    for (const m of c) if (MediaRecorder.isTypeSupported(m)) return m;
+    return null;
+  }
+  let gifLib = null;
+  function loadGif() {
+    if (!gifLib) gifLib = import("https://cdn.jsdelivr.net/npm/gifenc@1.0.3/+esm").catch(() => null);
+    return gifLib;
+  }
+  async function startRec() {
+    const s = Math.min(1, REC_MAX_W / W);
+    const vw = Math.round(W * s / 2) * 2, vh = Math.round(H * s / 2) * 2;
+    const vc = document.createElement("canvas"); vc.width = vw; vc.height = vh;
+    const gw = GIF_W, gh = Math.round(GIF_W * H / W / 2) * 2;
+    const gc = document.createElement("canvas"); gc.width = gw; gc.height = gh;
+    rec = { vc, vg: vc.getContext("2d"), gc, gg: gc.getContext("2d", { willReadFrequently: true }), gw, gh, t0: performance.now(), lastGif: 0, chunks: [], mime: pickMime(), mr: null, gif: null, gifFrames: 0, gifCut: false, raf: 0 };
+    composite(rec.vg, vw, vh);
+    if (rec.mime && vc.captureStream) {
+      try {
+        rec.mr = new MediaRecorder(vc.captureStream(30), { mimeType: rec.mime, videoBitsPerSecond: 6e6 });
+        const chunks = rec.chunks;
+        rec.mr.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+        rec.mr.start(500);
+      } catch (err) { rec.mr = null; }
+    }
+    const me = rec;
+    loadGif().then(lib => { if (rec === me && lib) me.gif = { lib, enc: lib.GIFEncoder() }; });
+    $("tRec").setAttribute("data-rec", ""); $("tRec").setAttribute("aria-label", "Detener grabación");
+    $("tRecIcon").innerHTML = '<rect x="7" y="7" width="10" height="10" rx="1.5" fill="currentColor" stroke="none"/>';
+    $("recPill").hidden = false;
+    loopRec();
+  }
+  function loopRec() {
+    if (!rec) return;
+    const now = performance.now(), el = (now - rec.t0) / 1000;
+    composite(rec.vg, rec.vc.width, rec.vc.height);
+    if (rec.gif && !rec.gifCut && now - rec.lastGif >= 1000 / GIF_FPS) {
+      rec.lastGif = now;
+      if (el > GIF_MAX_S) rec.gifCut = true;
+      else {
+        const { lib, enc } = rec.gif;
+        rec.gg.drawImage(rec.vc, 0, 0, rec.gw, rec.gh);
+        const data = rec.gg.getImageData(0, 0, rec.gw, rec.gh).data;
+        const pal = lib.quantize(data, 256, { format: "rgb444" });
+        enc.writeFrame(lib.applyPalette(data, pal, "rgb444"), rec.gw, rec.gh, { palette: pal, delay: 1000 / GIF_FPS });
+        rec.gifFrames++;
+      }
+    }
+    const mm = String(Math.floor(el / 60)).padStart(2, "0"), ss = String(Math.floor(el % 60)).padStart(2, "0");
+    $("recTime").textContent = "REC " + mm + ":" + ss;
+    rec.raf = requestAnimationFrame(loopRec);
+  }
+  let lastRec = null;
+  function stopRec() {
+    if (!rec) return;
+    const r = rec; rec = null;
+    cancelAnimationFrame(r.raf);
+    $("tRec").removeAttribute("data-rec"); $("tRec").setAttribute("aria-label", "Grabar la pantalla");
+    $("tRecIcon").innerHTML = '<circle cx="12" cy="12" r="6" fill="currentColor" stroke="none"/>';
+    $("recPill").hidden = true;
+    const secs = (performance.now() - r.t0) / 1000;
+    const finish = () => {
+      const ext = r.mime && r.mime.indexOf("mp4") >= 0 ? "mp4" : "webm";
+      lastRec = { video: r.chunks.length ? new Blob(r.chunks, { type: r.mime.split(";")[0] }) : null, ext, gif: null, tag: fileTag() };
+      if (r.gif && r.gifFrames) { r.gif.enc.finish(); lastRec.gif = new Blob([r.gif.enc.bytes()], { type: "image/gif" }); }
+      $("dlVideo").disabled = !lastRec.video;
+      $("dlVideo").textContent = lastRec.video ? "Descargar " + ext.toUpperCase() + " (" + (lastRec.video.size / 1e6).toFixed(1) + " MB)" : "Video no disponible en este navegador";
+      $("dlGif").disabled = !lastRec.gif;
+      $("dlGif").textContent = lastRec.gif ? "Descargar GIF (" + (lastRec.gif.size / 1e6).toFixed(1) + " MB)" : "GIF no disponible";
+      let info = "Duración: " + secs.toFixed(1) + " s.";
+      if (ext === "webm" && lastRec.video) info += " Tu navegador no graba MP4, así que el video sale en WebM (se abre en Chrome, Firefox o VLC).";
+      if (r.gifCut) info += " El GIF guarda solo los primeros " + GIF_MAX_S + " s para que no quede tan pesado.";
+      $("recInfo").textContent = info;
+      $("recPanel").hidden = false; $("dlVideo").focus();
+    };
+    if (r.mr && r.mr.state !== "inactive") { r.mr.onstop = finish; r.mr.stop(); } else finish();
+  }
+  $("tRec").addEventListener("click", () => { rec ? stopRec() : startRec(); });
+  $("dlVideo").addEventListener("click", () => { if (lastRec && lastRec.video) saveFile(lastRec.tag + "." + lastRec.ext, lastRec.video); });
+  $("dlGif").addEventListener("click", () => { if (lastRec && lastRec.gif) saveFile(lastRec.tag + ".gif", lastRec.gif); });
+  $("recClose").addEventListener("click", () => { $("recPanel").hidden = true; });
+
+  //agrandar: pantalla completa real; si el navegador o el marco no lo permiten, ocupa toda la ventana
+  function isExpanded() { return document.fullscreenElement === sim || sim.classList.contains("expanded"); }
+  function syncExpandUI() {
+    const on = isExpanded();
+    $("tFull").setAttribute("aria-label", on ? "Reducir pantalla" : "Agrandar pantalla");
+    $("tFullIcon").innerHTML = on ? '<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/>' : '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>';
+    document.body.style.overflow = sim.classList.contains("expanded") ? "hidden" : "";
+    requestAnimationFrame(resize);
+  }
+  function toggleExpand() {
+    if (isExpanded()) {
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+      sim.classList.remove("expanded"); syncExpandUI(); return;
+    }
+    const fallback = () => { sim.classList.add("expanded"); syncExpandUI(); };
+    if (sim.requestFullscreen && document.fullscreenEnabled) sim.requestFullscreen().then(syncExpandUI, fallback);
+    else fallback();
+  }
+  $("tFull").addEventListener("click", toggleExpand);
+  document.addEventListener("fullscreenchange", syncExpandUI);
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && sim.classList.contains("expanded")) { sim.classList.remove("expanded"); syncExpandUI(); } });
+  $("tPlay").addEventListener("click", () => $("play").click());
+
+  //inicio: calcula el caso por defecto y queda en la primera cola de marea
+  function start() {
+    drawSky(); resizeChart(); resize();
+    readParams(); showParamValues();
+    initialFrame = 60;
+    compute(false);
+  }
+  addEventListener("resize", () => { drawSky(); resize(); resizeChart(); });
+  if ("ResizeObserver" in window) { new ResizeObserver(() => { resize(); }).observe(view); new ResizeObserver(() => resizeChart()).observe(chart); }
+  start();
+
+  //en modo incrustado, avisa la altura al sitio contenedor para que ajuste el iframe
+  if (document.documentElement.classList.contains("embed") && window.parent !== window) {
+    let lastH = 0;
+    const sendH = () => { const h = Math.ceil(document.documentElement.scrollHeight); if (Math.abs(h - lastH) > 2) { lastH = h; window.parent.postMessage({ type: "simulador-galaxias:height", height: h }, "*"); } };
+    if ("ResizeObserver" in window) new ResizeObserver(sendH).observe(document.body);
+    addEventListener("load", sendH); setTimeout(sendH, 500);
+  }
+})();
+</script>
+
+</body>
+</html>
