@@ -28,7 +28,7 @@
   --nebula-c: rgba(58, 80, 200, 0.28);
   --gold: #f5d63a;
   --gold-deep: #e0a91f;
-  --panel: rgba(140, 131, 150, 0.86);
+  --panel: rgba(104, 92, 120, 0.9);
   --panel-line: rgba(255, 255, 255, 0.92);
   --screen: #1c1921;
   --screen-edge: #2c2833;
@@ -274,11 +274,79 @@ footer { text-align: center; color: var(--ink-mute); font-size: 13px; padding-bl
   .hint { display: none; }
   .run { font-size: 13px; }
 }
-html.embed .topbar, html.embed .title { display: none; }
-html.embed .lab { grid-template-areas: "params sim" "params sliders" "chart chart"; padding-top: 20px; }
+/*hidden manda siempre (varios bloques tienen display propio)*/
+[hidden] { display: none !important; }
+
+/*idioma: bloques largos duplicados (es / en), se muestra uno segun html[data-ui-lang]*/
+[data-lang="en"] { display: none; }
+html[data-ui-lang="en"] [data-lang="en"] { display: block; }
+html[data-ui-lang="en"] [data-lang="es"] { display: none; }
+.topright { display: flex; align-items: center; gap: clamp(14px, 3vw, 40px); }
+.lang { display: flex; gap: 2px; background: rgba(255, 255, 255, 0.08); border-radius: 999px; padding: 3px; flex: none; }
+.lang button { font: 800 12px var(--f-body); letter-spacing: 0.06em; color: var(--ink-soft); background: transparent; border: 0; border-radius: 999px; padding: 5px 11px; cursor: pointer; }
+.lang button[aria-pressed="true"] { background: var(--gold); color: var(--ink-dark); }
+.lang button:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+
+/*ejemplos inspirados en galaxias reales*/
+.presets { margin-top: 18px; max-width: 520px; }
+.presets .cap { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; color: var(--ink-soft); margin-bottom: 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: 700 14px var(--f-body); color: var(--ink); background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 999px; padding: 6px 14px; min-height: 34px; cursor: pointer; }
+.chip:hover { background: rgba(255, 255, 255, 0.18); }
+.chip[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); color: var(--ink-dark); }
+.chip:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.title .pnote { margin: 10px 0 0; max-width: none; font-size: 14px; line-height: 1.45; color: var(--ink-soft); background: var(--card); border: 1px solid var(--card-line); border-radius: 14px; padding: 10px 14px; }
+.title .pnote strong { color: var(--ink); }
+.pnote button { font: 800 14px var(--f-body); color: var(--gold); background: none; border: 0; padding: 0; margin-left: 2px; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+.pnote button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 4px; }
+
+/*angulo xy sin efecto mientras el disco no este inclinado*/
+.xyhint { height: 22px; display: flex; align-items: center; font-size: 12px; font-style: italic; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/*selector de color por galaxia*/
+.group-label { flex-wrap: wrap; }
+.swatches { margin-left: auto; display: flex; gap: 8px; }
+.sw { width: 26px; height: 26px; border-radius: 50%; padding: 0; cursor: pointer; background: var(--c); border: 2px solid transparent; box-shadow: inset 0 0 0 2px rgba(23, 19, 29, 0.6); }
+.sw[aria-pressed="true"] { border-color: #fff; }
+.sw:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+/*guardar parametros*/
+.savebar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.pbtn { font: 800 13px var(--f-body); color: var(--ink-dark); background: var(--gold); border: 1px solid var(--gold); border-radius: 999px; padding: 7px 14px; min-height: 34px; cursor: pointer; }
+.pbtn.ghost { background: transparent; color: var(--ink); border-color: rgba(255, 255, 255, 0.65); }
+.pbtn.ghost:hover { background: rgba(255, 255, 255, 0.12); }
+.pbtn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.savedrow { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; margin-top: 12px; }
+.savedrow label { grid-column: 1 / -1; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; color: var(--ink-soft); }
+.savedrow select { font: 700 14px var(--f-body); color: var(--ink-dark); background: var(--pill); border: 0; border-radius: 999px; padding: 7px 12px; min-width: 0; width: 100%; height: 34px; }
+.savemsg { min-height: 20px; margin-top: 8px; font-size: 13px; color: var(--ink); }
+dialog.dlg { background: var(--space-2); color: var(--ink); border: 1px solid var(--card-line); border-radius: 18px; padding: 22px; width: min(400px, calc(100vw - 32px)); font-family: var(--f-body); }
+dialog.dlg::backdrop { background: rgba(12, 6, 22, 0.72); }
+dialog.dlg h3 { margin: 0 0 10px; font-size: 20px; font-weight: 800; }
+dialog.dlg .sum { font: 600 12px/1.7 var(--f-mono); color: var(--ink-soft); background: rgba(255, 255, 255, 0.06); border-radius: 10px; padding: 8px 12px; margin: 0 0 14px; }
+dialog.dlg label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+dialog.dlg input { width: 100%; font: 600 15px var(--f-body); color: var(--ink-dark); background: var(--pill); border: 2px solid transparent; border-radius: 10px; padding: 8px 10px; }
+dialog.dlg input:focus-visible { outline: none; border-color: var(--gold); }
+dialog.dlg .fine { font-size: 12px; color: var(--ink-soft); margin: 8px 0 16px; }
+dialog.dlg .acts { display: flex; justify-content: flex-end; gap: 8px; }
+
+@media (max-width: 600px) {
+  .topbar .wrap { flex-wrap: wrap; row-gap: 4px; padding-block: 8px; }
+  .topright { display: contents; }
+  .nav { order: 3; width: 100%; justify-content: space-between; gap: 12px; }
+  .nav a { font-size: 15px; letter-spacing: 0.04em; }
+  .doc section { scroll-margin-top: 110px; }
+}
+
+/*modo incrustado (iframe o ?embed=1): el sitio contenedor pone su propio titulo; quedan los ejemplos y el selector de idioma*/
+html.embed .topbar { position: static; background: none; border: 0; backdrop-filter: none; }
+html.embed .logo, html.embed .nav { display: none; }
+html.embed .topbar .wrap { justify-content: flex-end; padding-block: 10px 0; }
+html.embed .title h1, html.embed .title > p { display: none; }
+html.embed .presets { margin-top: 0; }
+html.embed .lab { padding-top: 12px; }
 html.embed .sim { margin-top: 0; }
 html.embed body { background: var(--space); }
-@media (max-width: 900px) { html.embed .lab { grid-template-areas: "sim" "sliders" "params" "chart"; } }
 </style>
 
 <canvas id="sky" aria-hidden="true"></canvas>
@@ -286,35 +354,62 @@ html.embed body { background: var(--space); }
 
 <header class="topbar">
   <div class="wrap">
-    <a class="logo" href="#top" aria-label="Simulador de galaxias, inicio"><span>Simulador</span><span>de galaxias</span></a>
-    <nav class="nav" aria-label="Secciones">
-      <a href="#info">Información</a>
-            <a href="#help">Ayuda</a>
-      <a href="#about">Sobre nosotros</a>
-    </nav>
+    <a class="logo" href="#top" data-i18n-aria="logoAria" aria-label="Simulador de galaxias, inicio"><span data-i18n="t1">Simulador</span><span data-i18n="t2">de galaxias</span></a>
+    <div class="topright">
+      <nav class="nav" data-i18n-aria="navAria" aria-label="Secciones">
+        <a href="#info" data-i18n="navInfo">Información</a>
+        <a href="#help" data-i18n="navHelp">Ayuda</a>
+        <a href="#about" data-i18n="navAbout">Sobre nosotros</a>
+      </nav>
+      <div class="lang" role="group" aria-label="Idioma / Language">
+        <button type="button" data-setlang="es" lang="es" aria-pressed="true" aria-label="Español">ES</button>
+        <button type="button" data-setlang="en" lang="en" aria-pressed="false" aria-label="English">EN</button>
+      </div>
+    </div>
   </div>
 </header>
 
 <main class="wrap" id="top">
   <div class="lab">
     <div class="title">
-      <h1><span>Simulador</span><span>de galaxias</span></h1>
-      <p>Choque de dos galaxias de disco con halos de Plummer. Mueve los parámetros y presiona <strong>Correr simulación</strong>: el cálculo corre directo en tu navegador.</p>
+      <h1><span data-i18n="t1">Simulador</span><span data-i18n="t2">de galaxias</span></h1>
+      <p data-i18n-html="intro">Choque de dos galaxias de disco con halos de Plummer. Mueve los parámetros y presiona <strong>Correr simulación</strong>: el cálculo corre directo en tu navegador.</p>
+      <div class="presets">
+        <div class="cap" id="exCap" data-i18n="exCap">Ejemplos inspirados en galaxias reales</div>
+        <div class="chips" role="group" aria-labelledby="exCap">
+          <button type="button" class="chip" data-preset="ant" aria-pressed="false" data-i18n="exAnt">Galaxias Antena</button>
+          <button type="button" class="chip" data-preset="ring" aria-pressed="false" data-i18n="exRing">Galaxia anillo</button>
+          <button type="button" class="chip" data-preset="stream" aria-pressed="false" data-i18n="exStream">Enana y corriente</button>
+        </div>
+        <p class="pnote" id="presetNote" hidden aria-live="polite"></p>
+      </div>
     </div>
 
     <form class="params" id="params" autocomplete="off">
-      <h2>Parámetros</h2>
-      <div class="prow"><label for="fr">Velocidad radial</label><input class="line" type="range" id="fr" min="0" max="1" step="0.01" value="0.1"><output for="fr" id="fr_o">0.10</output></div>
-      <div class="prow"><label for="ft">Velocidad tangencial</label><input class="line" type="range" id="ft" min="0" max="1" step="0.01" value="0.3"><output for="ft" id="ft_o">0.30</output></div>
-      <div class="prow"><label for="q">Razón de masas</label><input class="line" type="range" id="q" min="0.1" max="1" step="0.05" value="0.5"><output for="q" id="q_o">0.50</output></div>
-      <div class="group-label"><i style="background: var(--g1)"></i>Galaxia 1 · 10¹¹ M☉</div>
-      <div class="prow"><label for="xy1">Ángulo xy</label><input class="line" type="range" id="xy1" min="0" max="180" step="1" value="0"><output for="xy1" id="xy1_o">0°</output></div>
-      <div class="prow"><label for="xz1">Ángulo xz</label><input class="line" type="range" id="xz1" min="0" max="180" step="1" value="0"><output for="xz1" id="xz1_o">0°</output></div>
-      <div class="group-label"><i style="background: var(--g2)"></i>Galaxia 2 · q × 10¹¹ M☉</div>
-      <div class="prow"><label for="xy2">Ángulo xy</label><input class="line" type="range" id="xy2" min="0" max="180" step="1" value="30"><output for="xy2" id="xy2_o">30°</output></div>
-      <div class="prow"><label for="xz2">Ángulo xz</label><input class="line" type="range" id="xz2" min="0" max="180" step="1" value="45"><output for="xz2" id="xz2_o">45°</output></div>
+      <h2 data-i18n="params">Parámetros</h2>
+      <div class="prow"><label for="fr" data-i18n="vr">Velocidad radial</label><input class="line" type="range" id="fr" min="0" max="1" step="0.01" value="0.1"><output for="fr" id="fr_o">0.10</output></div>
+      <div class="prow"><label for="ft" data-i18n="vt">Velocidad tangencial</label><input class="line" type="range" id="ft" min="0" max="1" step="0.01" value="0.3"><output for="ft" id="ft_o">0.30</output></div>
+      <div class="prow"><label for="q" data-i18n="q">Razón de masas</label><input class="line" type="range" id="q" min="0.1" max="1" step="0.05" value="0.5"><output for="q" id="q_o">0.50</output></div>
+      <div class="group-label"><i style="background: var(--g1)"></i><span data-i18n="g1">Galaxia 1 · 10¹¹ M☉</span>
+        <span class="swatches" role="group" data-i18n-aria="colG1" aria-label="Color de la galaxia 1">
+          <button type="button" class="sw" data-gal="0" data-col="0" style="--c: #ffb65c" aria-pressed="true"></button>
+          <button type="button" class="sw" data-gal="0" data-col="1" style="--c: #ff6996" aria-pressed="false"></button>
+          <button type="button" class="sw" data-gal="0" data-col="2" style="--c: #f5dc5a" aria-pressed="false"></button>
+        </span>
+      </div>
+      <div class="prow"><label for="xy1" data-i18n="axy">Ángulo xy</label><input class="line" type="range" id="xy1" min="0" max="360" step="1" value="0"><span class="xyhint" id="xyhint1" data-i18n="xyHint" hidden>inclina el disco (xz)</span><output for="xy1" id="xy1_o">0°</output></div>
+      <div class="prow"><label for="xz1" data-i18n="axz">Ángulo xz</label><input class="line" type="range" id="xz1" min="0" max="180" step="1" value="0"><output for="xz1" id="xz1_o">0°</output></div>
+      <div class="group-label"><i style="background: var(--g2)"></i><span data-i18n="g2">Galaxia 2 · q × 10¹¹ M☉</span>
+        <span class="swatches" role="group" data-i18n-aria="colG2" aria-label="Color de la galaxia 2">
+          <button type="button" class="sw" data-gal="1" data-col="0" style="--c: #86b4ff" aria-pressed="true"></button>
+          <button type="button" class="sw" data-gal="1" data-col="1" style="--c: #54d6e8" aria-pressed="false"></button>
+          <button type="button" class="sw" data-gal="1" data-col="2" style="--c: #b28cff" aria-pressed="false"></button>
+        </span>
+      </div>
+      <div class="prow"><label for="xy2" data-i18n="axy">Ángulo xy</label><input class="line" type="range" id="xy2" min="0" max="360" step="1" value="30"><span class="xyhint" id="xyhint2" data-i18n="xyHint" hidden>inclina el disco (xz)</span><output for="xy2" id="xy2_o">30°</output></div>
+      <div class="prow"><label for="xz2" data-i18n="axz">Ángulo xz</label><input class="line" type="range" id="xz2" min="0" max="180" step="1" value="45"><output for="xz2" id="xz2_o">45°</output></div>
       <div class="pfoot">
-        <label for="npart">Estrellas por galaxia
+        <label for="npart"><span data-i18n="npart">Estrellas por galaxia</span>
           <select id="npart">
             <option value="1000">1000</option>
             <option value="3000" selected>3000</option>
@@ -323,140 +418,253 @@ html.embed body { background: var(--space); }
         </label>
         <span id="vescOut">V<sub>escap</sub> = – km/s</span>
       </div>
+      <div class="savebar">
+        <button type="button" class="pbtn" id="btnSave" data-i18n="save">Guardar parámetros</button>
+        <button type="button" class="pbtn ghost" id="btnReset" data-i18n="reset">Restablecer</button>
+      </div>
+      <div class="savedrow" id="savedRow" hidden>
+        <label for="savedSel" data-i18n="myConfigs">Mis configuraciones</label>
+        <select id="savedSel"></select>
+        <button type="button" class="pbtn" id="btnLoad" data-i18n="load">Cargar</button>
+        <button type="button" class="pbtn ghost" id="btnDel" data-i18n="del">Borrar</button>
+      </div>
+      <div class="savemsg" id="saveMsg" aria-live="polite"></div>
     </form>
 
     <div class="sim" id="sim">
-      <canvas id="view" aria-label="Vista de la simulación. Arrastra para rotar, rueda o pellizco para acercar."></canvas>
-      <div class="views" role="group" aria-label="Vista">
+      <canvas id="view" data-i18n-aria="viewAria" aria-label="Vista de la simulación. Arrastra para rotar, rueda o pellizco para acercar."></canvas>
+      <div class="views" role="group" data-i18n-aria="viewsAria" aria-label="Vista">
         <button type="button" data-view="xy" aria-pressed="true">XY</button>
         <button type="button" data-view="xz" aria-pressed="false">XZ</button>
         <button type="button" data-view="3d" aria-pressed="false">3D</button>
       </div>
-      <div class="tools" role="toolbar" aria-label="Herramientas de la pantalla">
-        <button class="tbtn only-exp" id="tPlay" type="button" aria-label="Reproducir" title="Reproducir / pausar"><svg viewBox="0 0 24 24" id="tPlayIcon"><path d="M7 4l13 8-13 8z" fill="currentColor"/></svg></button>
+      <div class="tools" role="toolbar" data-i18n-aria="toolsAria" aria-label="Herramientas de la pantalla">
+        <button class="tbtn only-exp" id="tPlay" type="button" aria-label="Reproducir" data-i18n-title="playTitle" title="Reproducir / pausar"><svg viewBox="0 0 24 24" id="tPlayIcon"><path d="M7 4l13 8-13 8z" fill="currentColor"/></svg></button>
         <button class="run" id="run" type="button">Correr simulación</button>
-        <button class="tbtn" id="tShot" type="button" aria-label="Sacar captura de pantalla" title="Captura (PNG)"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
-        <button class="tbtn" id="tRec" type="button" aria-label="Grabar la pantalla" title="Grabar (MP4 / GIF)"><svg viewBox="0 0 24 24" id="tRecIcon"><circle cx="12" cy="12" r="6" fill="currentColor" stroke="none"/></svg></button>
-        <button class="tbtn" id="tFull" type="button" aria-label="Agrandar pantalla" title="Agrandar (F)"><svg viewBox="0 0 24 24" id="tFullIcon"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+        <button class="tbtn" id="tShot" type="button" data-i18n-aria="shotAria" aria-label="Sacar captura de pantalla" data-i18n-title="shotTitle" title="Captura (PNG)"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
+        <button class="tbtn" id="tRec" type="button" aria-label="Grabar la pantalla" data-i18n-title="recTip" title="Grabar (MP4 / GIF)"><svg viewBox="0 0 24 24" id="tRecIcon"><circle cx="12" cy="12" r="6" fill="currentColor" stroke="none"/></svg></button>
+        <button class="tbtn" id="tFull" type="button" aria-label="Agrandar pantalla" data-i18n-title="fullTitle" title="Agrandar (F)"><svg viewBox="0 0 24 24" id="tFullIcon"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
       </div>
       <div class="recpill" id="recPill" hidden><i></i><span id="recTime">REC 00:00</span></div>
       <div class="simtoast" id="simToast" hidden aria-live="polite"></div>
       <div class="recpanel" id="recPanel" hidden role="dialog" aria-modal="true" aria-labelledby="recTitle">
         <div class="box">
-          <h3 id="recTitle">Grabación lista</h3>
+          <h3 id="recTitle" data-i18n="recReady">Grabación lista</h3>
           <p id="recInfo"></p>
           <button class="btn" id="dlVideo" type="button">Descargar video</button>
           <button class="btn" id="dlGif" type="button">Descargar GIF</button>
-          <button class="btn ghost" id="recClose" type="button">Cerrar</button>
+          <button class="btn ghost" id="recClose" type="button" data-i18n="close">Cerrar</button>
         </div>
       </div>
-      <div class="hint">arrastra para rotar · rueda para zoom · doble clic reinicia</div>
+      <div class="hint" data-i18n="hint">arrastra para rotar · rueda para zoom · doble clic reinicia</div>
       <div class="hud"><span id="hudT">t = 0 Myr</span><span class="scalebar"><b id="sbar" style="width: 40px"></b><span id="slabel">10 kpc</span></span></div>
-      <div class="legend"><span><i style="background: var(--g1)"></i>Galaxia 1</span><span><i style="background: var(--g2)"></i>Galaxia 2</span><span class="vleg"><i style="background: var(--vrad); border-radius: 2px"></i>V radial</span><span class="vleg"><i style="background: var(--vtan); border-radius: 2px"></i>V tangencial</span></div>
+      <div class="legend"><span><i style="background: var(--g1)"></i><span data-i18n="gal1">Galaxia 1</span></span><span><i style="background: var(--g2)"></i><span data-i18n="gal2">Galaxia 2</span></span><span class="vleg"><i style="background: var(--vrad); border-radius: 2px"></i><span data-i18n="vrad">V radial</span></span><span class="vleg"><i style="background: var(--vtan); border-radius: 2px"></i><span data-i18n="vtan">V tangencial</span></span></div>
     </div>
 
     <div class="sliders">
       <div class="pillrow">
         <button class="play" id="play" type="button" aria-label="Reproducir"><svg viewBox="0 0 16 16" id="playIcon"><path d="M4 2l10 6-10 6z"/></svg></button>
-        <input class="pill" type="range" id="time" min="0" max="300" step="1" value="0" aria-label="Tiempo en millones de años">
-        <div class="pillcap">Tiempo [Myr]<output id="time_o">0</output></div>
+        <input class="pill" type="range" id="time" min="0" max="300" step="1" value="0" data-i18n-aria="timeAria" aria-label="Tiempo en millones de años">
+        <div class="pillcap"><span data-i18n="timeCap">Tiempo [Myr]</span><output id="time_o">0</output></div>
       </div>
-      <div class="speed" role="group" aria-label="Velocidad de reproducción">
-        <span>velocidad</span>
+      <div class="speed" role="group" data-i18n-aria="speedAria" aria-label="Velocidad de reproducción">
+        <span data-i18n="speed">velocidad</span>
         <button type="button" data-speed="0.5" aria-pressed="false">½×</button>
         <button type="button" data-speed="1" aria-pressed="true">1×</button>
         <button type="button" data-speed="2" aria-pressed="false">2×</button>
         <button type="button" data-speed="4" aria-pressed="false">4×</button>
       </div>
       <div class="pillrow nobtn">
-        <input class="pill" type="range" id="sep" min="10" max="80" step="1" value="40" aria-label="Separación inicial entre galaxias en kpc">
-        <div class="pillcap">Separación entre galaxias [kpc]<output id="sep_o">40</output></div>
+        <input class="pill" type="range" id="sep" min="10" max="80" step="1" value="40" data-i18n-aria="sepAria" aria-label="Separación inicial entre galaxias en kpc">
+        <div class="pillcap"><span data-i18n="sepCap">Separación entre galaxias [kpc]</span><output id="sep_o">40</output></div>
       </div>
       <div class="stale" id="stale" aria-live="polite"></div>
     </div>
 
     <section class="chartbox" aria-labelledby="chartTitle">
       <div style="min-width: 0">
-        <h2 id="chartTitle">Separación de los halos en el tiempo</h2>
-        <p class="sub">Distancia entre los centros de ambos halos [kpc] versus tiempo [Myr], cada 10 Myr. Haz clic en el gráfico para ir a ese instante.</p>
-        <div class="chartwrap"><canvas id="chart" aria-label="Gráfico de separación en kpc versus tiempo en Myr"></canvas></div>
+        <h2 id="chartTitle" data-i18n="chartTitle">Separación de los halos en el tiempo</h2>
+        <p class="sub" data-i18n="chartSub">Distancia entre los centros de ambos halos [kpc] versus tiempo [Myr], cada 10 Myr. Haz clic en el gráfico para ir a ese instante.</p>
+        <div class="chartwrap"><canvas id="chart" data-i18n-aria="chartAria" aria-label="Gráfico de separación en kpc versus tiempo en Myr"></canvas></div>
       </div>
       <dl class="stats" id="stats">
-        <div><dt>Separación inicial</dt><dd id="st_sep0">–</dd></div>
-        <div><dt>Separación actual</dt><dd id="st_sep">–</dd></div>
-        <div><dt>Primer pericentro</dt><dd id="st_peri">–</dd></div>
-        <div><dt>Separación mínima</dt><dd id="st_min">–</dd></div>
-        <div><dt>Pericentros en 3 Gyr</dt><dd id="st_np">–</dd></div>
-        <div><dt>V<sub>rel</sub> inicial</dt><dd id="st_vrel">–</dd></div>
+        <div><dt data-i18n="sSep0">Separación inicial</dt><dd id="st_sep0">–</dd></div>
+        <div><dt data-i18n="sSep">Separación actual</dt><dd id="st_sep">–</dd></div>
+        <div><dt data-i18n="sPeri">Primer pericentro</dt><dd id="st_peri">–</dd></div>
+        <div><dt data-i18n="sMin">Separación mínima</dt><dd id="st_min">–</dd></div>
+        <div><dt data-i18n="sNp">Pericentros en 3 Gyr</dt><dd id="st_np">–</dd></div>
+        <div><dt data-i18n-html="sVrel">V<sub>rel</sub> inicial</dt><dd id="st_vrel">–</dd></div>
+        <div><dt data-i18n="sErr">Error de energía</dt><dd id="st_err">–</dd></div>
       </dl>
     </section>
   </div>
 
   <div class="doc">
-    <section id="info" aria-labelledby="infoT">
-      <h2 id="infoT">Información</h2>
-      <p>El simulador modela el encuentro de dos galaxias de disco con un <strong>N-cuerpos restringido</strong>. Cada galaxia es un halo de Plummer (masa puntual suavizada) que atrae a sus estrellas y al otro halo. Las estrellas son partículas de prueba: sienten la gravedad de los dos halos, pero no se atraen entre sí ni afectan a los halos.</p>
-      <p>Aun así, el modelo reproduce lo más llamativo de una fusión: al pasar por el pericentro, la fuerza de marea del otro halo arranca estrellas de los bordes del disco y forma <strong>colas de marea</strong> y <strong>puentes</strong> entre las galaxias.</p>
-      <div class="cols">
-        <div>
-          <h3>Unidades (G = 1)</h3>
-          <p>Masa en M☉, largo en pc, velocidad en 65.8 m/s y tiempo en 14.9 Myr. La simulación avanza 3000 pasos de 1 Myr (3 Gyr en total) y guarda una imagen cada 10 Myr.</p>
+    <section id="info" data-i18n-aria="navInfo" aria-label="Información">
+      <div data-lang="es">
+        <h2>Información</h2>
+        <p>El simulador modela el encuentro de dos galaxias de disco con un <strong>N-cuerpos restringido</strong>. Cada galaxia es un halo de Plummer (masa puntual suavizada) que atrae a sus estrellas y al otro halo. Las estrellas son partículas de prueba: sienten la gravedad de los dos halos, pero no se atraen entre sí ni afectan a los halos.</p>
+        <p>Aun así, el modelo reproduce lo más llamativo de una fusión: al pasar por el pericentro, la fuerza de marea del otro halo arranca estrellas de los bordes del disco y forma <strong>colas de marea</strong> y <strong>puentes</strong> entre las galaxias.</p>
+        <div class="cols">
+          <div>
+            <h3>Unidades (G = 1)</h3>
+            <p>Masa en M☉, largo en pc, velocidad en 65.8 m/s y tiempo en 14.9 Myr. La simulación avanza 3000 pasos de 1 Myr (3 Gyr en total) con un integrador <strong>leapfrog</strong> (kick-drift-kick) y guarda una imagen cada 10 Myr. El <strong>error de energía</strong> del panel es cuánto cambió, como máximo, la energía de la órbita de los halos respecto de su energía potencial inicial: mientras más chico, más confiable el cálculo.</p>
+          </div>
+          <div>
+            <h3>Potencial de Plummer</h3>
+            <p>La masa encerrada es M(r) = M r³ / (r² + a²)^{3/2}, con largo de escala a = 15 kpc, que también es el suavizado del integrador. Las estrellas parten en órbitas circulares con v<sub>c</sub> = √(G M(r) / r).</p>
+          </div>
         </div>
-        <div>
-          <h3>Potencial de Plummer</h3>
-          <p>La masa encerrada es M(r) = M r³ / (r² + a²)^{3/2}, con largo de escala a = 15 kpc, que también es el suavizado del integrador. Las estrellas parten en órbitas circulares con v<sub>c</sub> = √(G M(r) / r).</p>
+        <h3>Parámetros</h3>
+        <div class="tbl">
+          <table>
+            <thead><tr><th>Parámetro</th><th>Significado</th><th>Rango</th></tr></thead>
+            <tbody>
+              <tr><td>Velocidad radial</td><td>Velocidad radial relativa inicial (acercamiento) como fracción de la velocidad de escape del par, V<sub>escap</sub> = √(2 G M / √(d² + a²)), calculada con el mismo potencial de Plummer de la simulación. Si (v. radial)² + (v. tangencial)² &lt; 1 la órbita es ligada; si es mayor, las galaxias se alejan para siempre.</td><td>0 – 1</td></tr>
+              <tr><td>Velocidad tangencial</td><td>Velocidad tangencial relativa inicial. Controla el momento angular de la órbita y qué tan cerca pasan.</td><td>0 – 1</td></tr>
+              <tr><td>Razón de masas</td><td>q = M₂ / M₁, con M₁ = 10¹¹ M☉. El radio del disco escala como 10 kpc · √(M / 10¹¹ M☉).</td><td>0.1 – 1</td></tr>
+              <tr><td>Ángulo xz</td><td>Inclinación del disco respecto al plano de la órbita (giro en torno al eje y). 0° es un disco en el plano de la órbita, 90° lo deja de canto y 180° lo deja retrógrado.</td><td>0° – 180°</td></tr>
+              <tr><td>Ángulo xy</td><td>Hacia dónde apunta esa inclinación: gira el disco ya inclinado en torno al eje z. Con el disco sin inclinar (xz = 0° o 180°) no cambia nada, por eso el control se apaga.</td><td>0° – 360°</td></tr>
+              <tr><td>Separación</td><td>Distancia inicial entre los centros de los halos, que parten en torno al centro de masa.</td><td>10 – 80 kpc</td></tr>
+            </tbody>
+          </table>
         </div>
+        <h3>Límites del modelo</h3>
+        <p>Los halos son rígidos y no hay fricción dinámica, así que sus centros no se funden: siguen orbitando entre sí con pericentros periódicos. Por eso el gráfico de separación oscila en vez de caer a cero. Lo que sí se transforma son los discos de estrellas.</p>
       </div>
-      <h3>Parámetros</h3>
-      <div class="tbl">
-        <table>
-          <thead><tr><th>Parámetro</th><th>Significado</th><th>Rango</th></tr></thead>
-          <tbody>
-            <tr><td>Velocidad radial</td><td>Velocidad radial relativa inicial (acercamiento) como fracción de la velocidad de escape del par, V<sub>escap</sub> = √(2 G M / d).</td><td>0 – 1</td></tr>
-            <tr><td>Velocidad tangencial</td><td>Velocidad tangencial relativa inicial. Controla el momento angular de la órbita y qué tan cerca pasan.</td><td>0 – 1</td></tr>
-            <tr><td>Razón de masas</td><td>q = M₂ / M₁, con M₁ = 10¹¹ M☉. El radio del disco escala como 10 kpc · √(M / 10¹¹ M☉).</td><td>0.1 – 1</td></tr>
-            <tr><td>Ángulo xy</td><td>Giro del disco en torno al eje z, antes de inclinarlo.</td><td>0° – 180°</td></tr>
-            <tr><td>Ángulo xz</td><td>Inclinación del disco en torno al eje y. 0° es un disco en el plano de la órbita; 180° lo deja retrógrado.</td><td>0° – 180°</td></tr>
-            <tr><td>Separación</td><td>Distancia inicial entre los centros de los halos, que parten en torno al centro de masa.</td><td>10 – 80 kpc</td></tr>
-          </tbody>
-        </table>
+      <div data-lang="en" lang="en">
+        <h2>Information</h2>
+        <p>The simulator models the encounter of two disc galaxies with a <strong>restricted N-body</strong> method. Each galaxy is a Plummer halo (a softened point mass) that pulls on its own stars and on the other halo. The stars are test particles: they feel the gravity of both halos, but they do not attract each other or affect the halos.</p>
+        <p>Even so, the model reproduces the most striking features of a merger: at pericentre, the tidal force of the other halo strips stars from the edges of the disc and builds <strong>tidal tails</strong> and <strong>bridges</strong> between the galaxies.</p>
+        <div class="cols">
+          <div>
+            <h3>Units (G = 1)</h3>
+            <p>Mass in M☉, length in pc, velocity in units of 65.8 m/s and time in units of 14.9 Myr. The simulation advances 3000 steps of 1 Myr (3 Gyr in total) with a <strong>leapfrog</strong> (kick-drift-kick) integrator and stores a snapshot every 10 Myr. The <strong>energy error</strong> in the panel is the largest change in the orbital energy of the halos relative to their initial potential energy: the smaller it is, the more reliable the calculation.</p>
+          </div>
+          <div>
+            <h3>Plummer potential</h3>
+            <p>The enclosed mass is M(r) = M r³ / (r² + a²)^{3/2}, with scale length a = 15 kpc, which is also the softening length of the integrator. Stars start on circular orbits with v<sub>c</sub> = √(G M(r) / r).</p>
+          </div>
+        </div>
+        <h3>Parameters</h3>
+        <div class="tbl">
+          <table>
+            <thead><tr><th>Parameter</th><th>Meaning</th><th>Range</th></tr></thead>
+            <tbody>
+              <tr><td>Radial velocity</td><td>Initial relative radial (approach) velocity as a fraction of the escape velocity of the pair, V<sub>esc</sub> = √(2 G M / √(d² + a²)), computed with the same Plummer potential as the simulation. If (radial v.)² + (tangential v.)² &lt; 1 the orbit is bound; if it is larger, the galaxies fly apart for good.</td><td>0 – 1</td></tr>
+              <tr><td>Tangential velocity</td><td>Initial relative tangential velocity. It sets the angular momentum of the orbit and how close the galaxies pass.</td><td>0 – 1</td></tr>
+              <tr><td>Mass ratio</td><td>q = M₂ / M₁, with M₁ = 10¹¹ M☉. The disc radius scales as 10 kpc · √(M / 10¹¹ M☉).</td><td>0.1 – 1</td></tr>
+              <tr><td>xz angle</td><td>Tilt of the disc with respect to the orbital plane (rotation about the y axis). 0° is a disc in the orbital plane, 90° is edge-on and 180° makes it retrograde.</td><td>0° – 180°</td></tr>
+              <tr><td>xy angle</td><td>Which way that tilt points: it turns the tilted disc about the z axis. With an untilted disc (xz = 0° or 180°) it changes nothing, so the control switches off.</td><td>0° – 360°</td></tr>
+              <tr><td>Separation</td><td>Initial distance between the halo centres, which start around the centre of mass.</td><td>10 – 80 kpc</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>Limits of the model</h3>
+        <p>The halos are rigid and there is no dynamical friction, so their centres never merge: they keep orbiting each other with periodic pericentres. That is why the separation plot oscillates instead of dropping to zero. What does change is the stellar discs.</p>
       </div>
-      <h3>Límites del modelo</h3>
-      <p>Los halos son rígidos y no hay fricción dinámica, así que sus centros no se funden: siguen orbitando entre sí con pericentros periódicos. Por eso el gráfico de separación oscila en vez de caer a cero. Lo que sí se transforma son los discos de estrellas.</p>
     </section>
 
-
-    <section id="help" aria-labelledby="helpT">
-      <h2 id="helpT">Ayuda</h2>
-      <div class="cols">
-        <div>
-          <h3>Correr una simulación</h3>
-          <ol class="steps">
-            <li>Ajusta los parámetros y la separación. La pantalla muestra al tiro los discos en t = 0, con flechas para la velocidad radial (rosada, eje x) y tangencial (verde, eje y) de cada galaxia.</li>
-            <li>Presiona <strong>Correr simulación</strong>. El cálculo de 3 Gyr tarda menos de un segundo y luego se reproduce.</li>
-            <li>Mueve el slider de <strong>Tiempo</strong> o haz clic en el gráfico para ir a cualquier instante.</li>
-            <li>Con los botones de la pantalla puedes sacar una <strong>captura</strong> (PNG), <strong>grabar</strong> lo que ves (MP4 o GIF) y <strong>agrandar</strong> la pantalla.</li>
-          </ol>
+    <section id="help" data-i18n-aria="navHelp" aria-label="Ayuda">
+      <div data-lang="es">
+        <h2>Ayuda</h2>
+        <div class="cols">
+          <div>
+            <h3>Correr una simulación</h3>
+            <ol class="steps">
+              <li>Ajusta los parámetros y la separación. La pantalla muestra al tiro los discos en t = 0, con flechas para la velocidad radial (rosada, eje x) y tangencial (verde, eje y) de cada galaxia.</li>
+              <li>Presiona <strong>Correr simulación</strong>. El cálculo de 3 Gyr tarda menos de un segundo y luego se reproduce.</li>
+              <li>Mueve el slider de <strong>Tiempo</strong> o haz clic en el gráfico para ir a cualquier instante.</li>
+              <li>Con los botones de la pantalla puedes sacar una <strong>captura</strong> (PNG), <strong>grabar</strong> lo que ves (MP4 o GIF) y <strong>agrandar</strong> la pantalla.</li>
+            </ol>
+          </div>
+          <div>
+            <h3>Controles</h3>
+            <p>Arrastra la pantalla para rotar la vista, usa la rueda o pellizca para acercar, y haz doble clic para volver a la vista inicial. <strong>XY</strong> mira el plano de la órbita desde arriba, <strong>XZ</strong> de canto y <strong>3D</strong> en perspectiva oblicua.</p>
+            <p>Teclado: <kbd>Espacio</kbd> reproduce o pausa, <kbd>←</kbd> <kbd>→</kbd> avanzan 10 Myr, <kbd>F</kbd> agranda la pantalla y <kbd>Esc</kbd> la vuelve a su tamaño.</p>
+          </div>
         </div>
-        <div>
-          <h3>Controles</h3>
-          <p>Arrastra la pantalla para rotar la vista, usa la rueda o pellizca para acercar, y haz doble clic para volver a la vista inicial. <strong>XY</strong> mira el plano de la órbita desde arriba, <strong>XZ</strong> de canto y <strong>3D</strong> en perspectiva oblicua.</p>
-          <p>Teclado: <kbd>Espacio</kbd> reproduce o pausa, <kbd>←</kbd> <kbd>→</kbd> avanzan 10 Myr, <kbd>F</kbd> agranda la pantalla y <kbd>Esc</kbd> la vuelve a su tamaño.</p>
+        <div class="cols">
+          <div>
+            <h3>Ejemplos, colores e idioma</h3>
+            <p>Los botones de <strong>Ejemplos</strong> cargan choques inspirados en galaxias reales y saltan al instante en que más se parecen; con <strong>Ver desde el inicio</strong> puedes mirar cómo se llega ahí. Son parecidos cualitativos, no ajustes a las galaxias reales.</p>
+            <p>Los círculos de color junto a cada galaxia cambian su color en la pantalla, y <strong>ES | EN</strong> arriba cambia el idioma de toda la página.</p>
+          </div>
+          <div>
+            <h3>Guardar tus parámetros</h3>
+            <p><strong>Guardar parámetros</strong> te pide un nombre y deja la configuración en <strong>Mis configuraciones</strong>, desde donde puedes cargarla o borrarla. Queda guardada solo en este navegador. <strong>Restablecer</strong> vuelve a los valores iniciales.</p>
+          </div>
         </div>
+        <h3>Qué probar</h3>
+        <p>Con Velocidad tangencial cerca de 0.3 y Ángulo xz = 0° en ambas galaxias (discos prógrados) salen colas de marea largas. Sube Ángulo xz de la galaxia 2 a 180° para un disco retrógrado: las colas casi desaparecen. Con Velocidad radial y Velocidad tangencial en 0, el choque es frontal.</p>
       </div>
-      <h3>Qué probar</h3>
-      <p>Con Velocidad tangencial cerca de 0.3 y Ángulo xz = 0° en ambas galaxias (discos prógrados) salen colas de marea largas. Sube Ángulo xz de la galaxia 2 a 180° para un disco retrógrado: las colas casi desaparecen. Con Velocidad radial y Velocidad tangencial en 0, el choque es frontal.</p>
+      <div data-lang="en" lang="en">
+        <h2>Help</h2>
+        <div class="cols">
+          <div>
+            <h3>Running a simulation</h3>
+            <ol class="steps">
+              <li>Adjust the parameters and the separation. The screen immediately shows the discs at t = 0, with arrows for the radial (pink, x axis) and tangential (green, y axis) velocity of each galaxy.</li>
+              <li>Press <strong>Run simulation</strong>. The 3 Gyr calculation takes less than a second and then plays back.</li>
+              <li>Move the <strong>Time</strong> slider or click on the plot to jump to any moment.</li>
+              <li>With the buttons on the screen you can take a <strong>screenshot</strong> (PNG), <strong>record</strong> what you see (MP4 or GIF) and <strong>enlarge</strong> the screen.</li>
+            </ol>
+          </div>
+          <div>
+            <h3>Controls</h3>
+            <p>Drag the screen to rotate the view, use the wheel or pinch to zoom, and double-click to go back to the initial view. <strong>XY</strong> looks at the orbital plane from above, <strong>XZ</strong> edge-on and <strong>3D</strong> from an oblique angle.</p>
+            <p>Keyboard: <kbd>Space</kbd> plays or pauses, <kbd>←</kbd> <kbd>→</kbd> step 10 Myr, <kbd>F</kbd> enlarges the screen and <kbd>Esc</kbd> restores its size.</p>
+          </div>
+        </div>
+        <div class="cols">
+          <div>
+            <h3>Examples, colours and language</h3>
+            <p>The <strong>Examples</strong> buttons load collisions inspired by real galaxies and jump to the moment when they look most alike; <strong>Watch from the start</strong> shows how the system gets there. They are qualitative look-alikes, not fits to the real galaxies.</p>
+            <p>The colour circles next to each galaxy change its colour on the screen, and <strong>ES | EN</strong> at the top switches the language of the whole page.</p>
+          </div>
+          <div>
+            <h3>Saving your parameters</h3>
+            <p><strong>Save parameters</strong> asks for a name and stores the set-up under <strong>My set-ups</strong>, where you can load or delete it. It is stored in this browser only. <strong>Reset</strong> goes back to the initial values.</p>
+          </div>
+        </div>
+        <h3>Things to try</h3>
+        <p>With Tangential velocity near 0.3 and xz angle = 0° for both galaxies (prograde discs) you get long tidal tails. Raise the xz angle of galaxy 2 to 180° for a retrograde disc: the tails almost disappear. With Radial velocity and Tangential velocity at 0, the collision is head-on.</p>
+      </div>
     </section>
-    <section id="about" aria-labelledby="aboutT">
-      <h2 id="aboutT">Sobre nosotros</h2>
-      <p>Este simulador nace de la tesina de Licenciatura en Astrofísica de <strong>Valentina Cortés Flores</strong>, guiada por el profesor <strong>Rory Smith</strong>, en la <strong>Universidad Técnica Federico Santa María</strong> (Valparaíso, Chile).</p>
-      <p>Queremos que cualquier persona, sin instalar nada ni saber programar, pueda armar su propio choque de galaxias y descubrir por qué se forman colas de marea, anillos o corrientes de estrellas. Lo pensamos como una herramienta para la sala de clases, la divulgación y la ciencia ciudadana.</p>
-      <h3>Contacto</h3>
-      <p><a href="mailto:valentina.cortesfl@usm.cl">valentina.cortesfl@usm.cl</a></p>
+
+    <section id="about" data-i18n-aria="navAbout" aria-label="Sobre nosotros">
+      <div data-lang="es">
+        <h2>Sobre nosotros</h2>
+        <p>Este simulador nace de la tesina de Licenciatura en Astrofísica de <strong>Valentina Cortés Flores</strong>, guiada por el profesor <strong>Rory Smith</strong>, en la <strong>Universidad Técnica Federico Santa María</strong> (Valparaíso, Chile).</p>
+        <p>Queremos que cualquier persona, sin instalar nada ni saber programar, pueda armar su propio choque de galaxias y descubrir por qué se forman colas de marea, anillos o corrientes de estrellas. Lo pensamos como una herramienta para la sala de clases, la divulgación y la ciencia ciudadana.</p>
+        <h3>Contacto</h3>
+        <p><a href="mailto:valentina.cortesfl@usm.cl">valentina.cortesfl@usm.cl</a></p>
+      </div>
+      <div data-lang="en" lang="en">
+        <h2>About us</h2>
+        <p>This simulator grew out of the undergraduate thesis in Astrophysics of <strong>Valentina Cortés Flores</strong>, supervised by Professor <strong>Rory Smith</strong>, at <strong>Universidad Técnica Federico Santa María</strong> (Valparaíso, Chile).</p>
+        <p>We want anyone, without installing anything or knowing how to code, to be able to set up their own galaxy collision and find out why tidal tails, rings or stellar streams form. We think of it as a tool for the classroom, outreach and citizen science.</p>
+        <h3>Contact</h3>
+        <p><a href="mailto:valentina.cortesfl@usm.cl">valentina.cortesfl@usm.cl</a></p>
+      </div>
     </section>
   </div>
 </main>
-<footer>Simulador de galaxias · N-cuerpos restringido con halos de Plummer</footer>
+<footer data-i18n="footer">Simulador de galaxias · N-cuerpos restringido con halos de Plummer</footer>
+
+<dialog class="dlg" id="saveDlg" aria-labelledby="saveTitle">
+  <form id="saveForm" autocomplete="off">
+    <h3 id="saveTitle" data-i18n="saveQ">¿Guardar parámetros?</h3>
+    <p class="sum" id="saveSummary"></p>
+    <label for="saveName" data-i18n="saveName">Nombre de la configuración</label>
+    <input id="saveName" type="text" maxlength="30">
+    <p class="fine" data-i18n="saveFine">Queda guardada solo en este navegador y dispositivo.</p>
+    <div class="acts">
+      <button type="button" class="pbtn ghost" id="saveCancel" data-i18n="cancel">Cancelar</button>
+      <button type="submit" class="pbtn" id="saveOk" data-i18n="saveOk">Guardar</button>
+    </div>
+  </form>
+</dialog>
 
 <script>
 //nucleo fisico: condiciones iniciales + integrador
@@ -488,11 +696,12 @@ function mPlummer(r, Mtot, a) {
   return Mtot * r * r * r / Math.pow(r * r + a * a, 1.5);
 }
 
-//rotacion 1 en torno a z (phi_xy), rotacion 2 en torno a y (phi_xz)
+//rotacion 1: inclinar el disco en torno a y (phi_xz); rotacion 2: girar el disco ya inclinado en torno a z (phi_xy)
+//el eje de giro del disco queda en (sin xz cos xy, sin xz sin xy, cos xz)
 function rotar(v, pxy, pxz) {
   const c1 = Math.cos(pxy), s1 = Math.sin(pxy), c2 = Math.cos(pxz), s2 = Math.sin(pxz);
-  const xr = v[0] * c1 - v[1] * s1, yr = v[0] * s1 + v[1] * c1, zr = v[2];
-  return [xr * c2 + zr * s2, yr, -xr * s2 + zr * c2];
+  const xt = v[0] * c2 + v[2] * s2, yt = v[1], zt = -v[0] * s2 + v[2] * c2;
+  return [xt * c1 - yt * s1, xt * s1 + yt * c1, zt];
 }
 
 //p: {q, sepKpc, fr, ft, xy1, xz1, xy2, xz2 (grados), npart, seed}
@@ -501,7 +710,8 @@ function makeICs(p) {
   const G = PHYS.G, a = PHYS.a;
   const M1 = PHYS.Mref, M2 = p.q * PHYS.Mref, M = M1 + M2;
   const sep = p.sepKpc * 1000;
-  const vesc = Math.sqrt(2 * G * M / sep);
+  //velocidad de escape del par con el potencial suavizado que usa el integrador: E = 0 cuando fr^2 + ft^2 = 1
+  const vesc = Math.sqrt(2 * G * M / Math.sqrt(sep * sep + a * a));
   const vt = p.ft * vesc, vr = p.fr * vesc;
   //halos en torno al centro de masa, separacion real = sep
   const h = {
@@ -544,11 +754,26 @@ function makeICs(p) {
   return { h, s, vesc };
 }
 
-//un paso: estrellas con halos del paso anterior, luego halos en orden
-function stepOnce(h, s, dt, eps2) {
+//aceleracion de cada halo por el otro (todas con las posiciones del mismo instante)
+function accHalos(h, eps2) {
+  const nh = h.m.length;
+  for (let j = 0; j < nh; j++) {
+    let ax = 0, ay = 0, az = 0;
+    for (let i = 0; i < nh; i++) {
+      if (i === j) continue;
+      const dx = h.x[j] - h.x[i], dy = h.y[j] - h.y[i], dz = h.z[j] - h.z[i];
+      const r2 = dx * dx + dy * dy + dz * dz + eps2;
+      const f = h.m[i] / (r2 * Math.sqrt(r2));
+      ax -= f * dx; ay -= f * dy; az -= f * dz;
+    }
+    h.ax[j] = ax; h.ay[j] = ay; h.az[j] = az;
+  }
+}
+//aceleracion de cada estrella por los halos
+function accStars(h, s, eps2) {
   const nh = h.m.length, N = s.n;
   const hx = h.x, hy = h.y, hz = h.z, hm = h.m;
-  const x = s.x, y = s.y, z = s.z, vx = s.vx, vy = s.vy, vz = s.vz;
+  const x = s.x, y = s.y, z = s.z;
   for (let j = 0; j < N; j++) {
     let ax = 0, ay = 0, az = 0;
     for (let i = 0; i < nh; i++) {
@@ -557,24 +782,47 @@ function stepOnce(h, s, dt, eps2) {
       const f = hm[i] / (r2 * Math.sqrt(r2));
       ax -= f * dx; ay -= f * dy; az -= f * dz;
     }
-    vx[j] += ax * dt; vy[j] += ay * dt; vz[j] += az * dt;
-    x[j] += vx[j] * dt; y[j] += vy[j] * dt; z[j] += vz[j] * dt;
-  }
-  for (let j = 0; j < nh; j++) {
-    let ax = 0, ay = 0, az = 0;
-    for (let i = 0; i < nh; i++) {
-      if (i === j) continue;
-      const dx = hx[j] - hx[i], dy = hy[j] - hy[i], dz = hz[j] - hz[i];
-      const r2 = dx * dx + dy * dy + dz * dz + eps2;
-      const f = hm[i] / (r2 * Math.sqrt(r2));
-      ax -= f * dx; ay -= f * dy; az -= f * dz;
-    }
-    h.vx[j] += ax * dt; h.vy[j] += ay * dt; h.vz[j] += az * dt;
-    hx[j] += h.vx[j] * dt; hy[j] += h.vy[j] * dt; hz[j] += h.vz[j] * dt;
+    s.ax[j] = ax; s.ay[j] = ay; s.az[j] = az;
   }
 }
+//un paso leapfrog kick-drift-kick: medio empujon a la velocidad, paso completo de posicion, medio empujon
+//halos y estrellas avanzan juntos; la aceleracion del final de un paso se reutiliza al inicio del siguiente
+function stepOnce(h, s, dt, eps2) {
+  const nh = h.m.length, N = s.n, hdt = 0.5 * dt;
+  if (!s.ax) {
+    h.ax = new Array(nh).fill(0); h.ay = new Array(nh).fill(0); h.az = new Array(nh).fill(0);
+    s.ax = new Float64Array(N); s.ay = new Float64Array(N); s.az = new Float64Array(N);
+    accHalos(h, eps2); accStars(h, s, eps2);
+  }
+  const x = s.x, y = s.y, z = s.z, vx = s.vx, vy = s.vy, vz = s.vz, ax = s.ax, ay = s.ay, az = s.az;
+  for (let j = 0; j < nh; j++) {
+    h.vx[j] += h.ax[j] * hdt; h.vy[j] += h.ay[j] * hdt; h.vz[j] += h.az[j] * hdt;
+    h.x[j] += h.vx[j] * dt; h.y[j] += h.vy[j] * dt; h.z[j] += h.vz[j] * dt;
+  }
+  for (let j = 0; j < N; j++) {
+    vx[j] += ax[j] * hdt; vy[j] += ay[j] * hdt; vz[j] += az[j] * hdt;
+    x[j] += vx[j] * dt; y[j] += vy[j] * dt; z[j] += vz[j] * dt;
+  }
+  accHalos(h, eps2); accStars(h, s, eps2);
+  for (let j = 0; j < nh; j++) { h.vx[j] += h.ax[j] * hdt; h.vy[j] += h.ay[j] * hdt; h.vz[j] += h.az[j] * hdt; }
+  for (let j = 0; j < N; j++) { vx[j] += ax[j] * hdt; vy[j] += ay[j] * hdt; vz[j] += az[j] * hdt; }
+}
 
-if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, mulberry32 };
+//energia de la orbita de los halos: cinetica + potencial de Plummer (las estrellas son particulas de prueba)
+function orbitEnergy(h, eps2) {
+  const nh = h.m.length;
+  let K = 0, W = 0;
+  for (let j = 0; j < nh; j++) {
+    K += 0.5 * h.m[j] * (h.vx[j] * h.vx[j] + h.vy[j] * h.vy[j] + h.vz[j] * h.vz[j]);
+    for (let i = 0; i < j; i++) {
+      const dx = h.x[j] - h.x[i], dy = h.y[j] - h.y[i], dz = h.z[j] - h.z[i];
+      W -= PHYS.G * h.m[i] * h.m[j] / Math.sqrt(dx * dx + dy * dy + dz * dz + eps2);
+    }
+  }
+  return { E: K + W, W };
+}
+
+if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, orbitEnergy, mulberry32 };
 
 </script>
 <script>
@@ -614,11 +862,308 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, m
     }
   }
 
-  //colores por galaxia y radio inicial (centro mas claro)
-  const PAL = [
-    ["rgba(255,244,214,A)", "rgba(255,214,140,A)", "rgba(255,180,96,A)", "rgba(240,130,80,A)"],
-    ["rgba(230,240,255,A)", "rgba(170,205,255,A)", "rgba(125,170,255,A)", "rgba(150,120,255,A)"]
+  //---------- textos en dos idiomas (es / en) ----------
+  const I18N = {
+    es: {
+      docTitle: "Simulador de galaxias", t1: "Simulador", t2: "de galaxias",
+      logoAria: "Simulador de galaxias, inicio", navAria: "Secciones",
+      navInfo: "Información", navHelp: "Ayuda", navAbout: "Sobre nosotros",
+      intro: "Choque de dos galaxias de disco con halos de Plummer. Mueve los parámetros y presiona <strong>Correr simulación</strong>: el cálculo corre directo en tu navegador.",
+      exCap: "Ejemplos inspirados en galaxias reales",
+      exAnt: "Galaxias Antena", exRing: "Galaxia anillo", exStream: "Enana y corriente",
+      ex_ant_note: "<strong>Galaxias Antena (NGC 4038/39).</strong> Dos discos iguales que giran en el mismo sentido que la órbita y pasan cerca. La marea del otro halo estira el lado lejano de cada disco en una cola larga: las dos «antenas». Se muestra en t = 1100 Myr.",
+      ex_ring_note: "<strong>Galaxia anillo, tipo Rueda de Carro.</strong> Las galaxias se atraviesan de frente y por el centro. El tirón repentino hace que las estrellas se junten en anillos que se expanden, como ondas en un estanque. Se muestra en t = 1950 Myr, tras tres pasadas.",
+      ex_stream_note: "<strong>Enana alrededor de una galaxia masiva.</strong> La enana (q = 0.1) orbita a la galaxia grande y la marea la va deshaciendo en una corriente de estrellas, parecido a la enana de Sagitario en la Vía Láctea. Se muestra en t = 2400 Myr.",
+      replay: "Ver desde el inicio",
+      params: "Parámetros", vr: "Velocidad radial", vt: "Velocidad tangencial", q: "Razón de masas", axy: "Ángulo xy", axz: "Ángulo xz",
+      g1: "Galaxia 1 · 10¹¹ M☉", g2: "Galaxia 2 · q × 10¹¹ M☉",
+      colG1: "Color de la galaxia 1", colG2: "Color de la galaxia 2",
+      c_naranja: "naranja", c_rosa: "rosa", c_dorado: "dorado", c_azul: "azul", c_turquesa: "turquesa", c_violeta: "violeta",
+      npart: "Estrellas por galaxia", vesc: "V<sub>escap</sub> = {0} km/s",
+      save: "Guardar parámetros", reset: "Restablecer", myConfigs: "Mis configuraciones", load: "Cargar", del: "Borrar",
+      saveQ: "¿Guardar parámetros?", saveName: "Nombre de la configuración", saveFine: "Queda guardada solo en este navegador y dispositivo.", cancel: "Cancelar", saveOk: "Guardar",
+      defName: "Mi choque {0}", savedMsg: "Guardada: {0}", loadedMsg: "Cargada: {0}", deletedMsg: "Borrada: {0}", resetMsg: "Parámetros restablecidos",
+      noStore: "Este navegador no permite guardar: «{0}» durará hasta que cierres la página.",
+      sum: "Vel. radial {0} · Vel. tangencial {1} · q = {2} · Galaxia 1: xy {3}°, xz {4}° · Galaxia 2: xy {5}°, xz {6}° · Separación {7} kpc · {8} estrellas por galaxia",
+      viewAria: "Vista de la simulación. Arrastra para rotar, rueda o pellizco para acercar.", viewsAria: "Vista", toolsAria: "Herramientas de la pantalla",
+      play: "Reproducir", pause: "Pausar", playTitle: "Reproducir / pausar", run: "Correr simulación", calc: "Calculando {0}%",
+      shotAria: "Sacar captura de pantalla", shotTitle: "Captura (PNG)", recAria: "Grabar la pantalla", recStop: "Detener grabación", recTip: "Grabar (MP4 / GIF)",
+      fullAria: "Agrandar pantalla", fullOff: "Reducir pantalla", fullTitle: "Agrandar (F)",
+      recReady: "Grabación lista", close: "Cerrar", hint: "arrastra para rotar · rueda para zoom · doble clic reinicia",
+      gal1: "Galaxia 1", gal2: "Galaxia 2", vrad: "V radial", vtan: "V tangencial",
+      timeAria: "Tiempo en millones de años", timeCap: "Tiempo [Myr]", speedAria: "Velocidad de reproducción", speed: "velocidad",
+      sepAria: "Separación inicial entre galaxias en kpc", sepCap: "Separación entre galaxias [kpc]",
+      stale: "Parámetros nuevos: presiona Correr simulación",
+      chartTitle: "Separación de los halos en el tiempo",
+      chartSub: "Distancia entre los centros de ambos halos [kpc] versus tiempo [Myr], cada 10 Myr. Haz clic en el gráfico para ir a ese instante.",
+      chartAria: "Gráfico de separación en kpc versus tiempo en Myr", chartHint: "Presiona Correr simulación para calcular la órbita",
+      sSep0: "Separación inicial", sSep: "Separación actual", sPeri: "Primer pericentro", sMin: "Separación mínima", sNp: "Pericentros en 3 Gyr", sVrel: "V<sub>rel</sub> inicial", sErr: "Error de energía", xyHint: "inclina el disco (xz)", never: "no ocurre",
+      footer: "Simulador de galaxias · N-cuerpos restringido con halos de Plummer",
+      dlSaved: "Guardado: {0}", dlCancel: "Descarga cancelada", dlWait: "Espera un momento e inténtalo de nuevo", dlBig: "El archivo es muy grande; graba un trozo más corto", dlFail: "No se pudo descargar aquí", dling: "Descargando {0}", imgFail: "No se pudo crear la imagen",
+      fileTag: "simulador-galaxias",
+      dlVid: "Descargar {0} ({1} MB)", noVid: "Video no disponible en este navegador", dlGif: "Descargar GIF ({0} MB)", noGif: "GIF no disponible",
+      dur: "Duración: {0} s.", webm: " Tu navegador no graba MP4, así que el video sale en WebM (se abre en Chrome, Firefox o VLC).", gifCut: " El GIF guarda solo los primeros {0} s para que no quede tan pesado."
+    },
+    en: {
+      docTitle: "Galaxy simulator", t1: "Galaxy", t2: "simulator",
+      logoAria: "Galaxy simulator, home", navAria: "Sections",
+      navInfo: "Information", navHelp: "Help", navAbout: "About us",
+      intro: "A collision between two disc galaxies with Plummer halos. Move the parameters and press <strong>Run simulation</strong>: the calculation runs right in your browser.",
+      exCap: "Examples inspired by real galaxies",
+      exAnt: "Antennae Galaxies", exRing: "Ring galaxy", exStream: "Dwarf and stream",
+      ex_ant_note: "<strong>Antennae Galaxies (NGC 4038/39).</strong> Two equal discs that spin in the same sense as the orbit and pass close to each other. The tide from the other halo stretches the far side of each disc into a long tail: the two “antennae”. Shown at t = 1100 Myr.",
+      ex_ring_note: "<strong>Ring galaxy, Cartwheel type.</strong> The galaxies pass through each other head-on and through the centre. The sudden pull makes the stars pile up into rings that expand, like ripples on a pond. Shown at t = 1950 Myr, after three passages.",
+      ex_stream_note: "<strong>A dwarf around a massive galaxy.</strong> The dwarf (q = 0.1) orbits the large galaxy and the tide slowly pulls it apart into a stream of stars, much like the Sagittarius dwarf in the Milky Way. Shown at t = 2400 Myr.",
+      replay: "Watch from the start",
+      params: "Parameters", vr: "Radial velocity", vt: "Tangential velocity", q: "Mass ratio", axy: "xy angle", axz: "xz angle",
+      g1: "Galaxy 1 · 10¹¹ M☉", g2: "Galaxy 2 · q × 10¹¹ M☉",
+      colG1: "Colour of galaxy 1", colG2: "Colour of galaxy 2",
+      c_naranja: "orange", c_rosa: "pink", c_dorado: "gold", c_azul: "blue", c_turquesa: "turquoise", c_violeta: "violet",
+      npart: "Stars per galaxy", vesc: "V<sub>esc</sub> = {0} km/s",
+      save: "Save parameters", reset: "Reset", myConfigs: "My set-ups", load: "Load", del: "Delete",
+      saveQ: "Save parameters?", saveName: "Name of the set-up", saveFine: "It is stored in this browser and device only.", cancel: "Cancel", saveOk: "Save",
+      defName: "My collision {0}", savedMsg: "Saved: {0}", loadedMsg: "Loaded: {0}", deletedMsg: "Deleted: {0}", resetMsg: "Parameters reset",
+      noStore: "This browser does not allow saving: “{0}” will last until you close the page.",
+      sum: "Radial vel. {0} · Tangential vel. {1} · q = {2} · Galaxy 1: xy {3}°, xz {4}° · Galaxy 2: xy {5}°, xz {6}° · Separation {7} kpc · {8} stars per galaxy",
+      viewAria: "Simulation view. Drag to rotate, wheel or pinch to zoom.", viewsAria: "View", toolsAria: "Screen tools",
+      play: "Play", pause: "Pause", playTitle: "Play / pause", run: "Run simulation", calc: "Computing {0}%",
+      shotAria: "Take a screenshot", shotTitle: "Screenshot (PNG)", recAria: "Record the screen", recStop: "Stop recording", recTip: "Record (MP4 / GIF)",
+      fullAria: "Enlarge screen", fullOff: "Shrink screen", fullTitle: "Enlarge (F)",
+      recReady: "Recording ready", close: "Close", hint: "drag to rotate · wheel to zoom · double-click resets",
+      gal1: "Galaxy 1", gal2: "Galaxy 2", vrad: "Radial V", vtan: "Tangential V",
+      timeAria: "Time in millions of years", timeCap: "Time [Myr]", speedAria: "Playback speed", speed: "speed",
+      sepAria: "Initial separation between the galaxies in kpc", sepCap: "Separation between galaxies [kpc]",
+      stale: "New parameters: press Run simulation",
+      chartTitle: "Halo separation over time",
+      chartSub: "Distance between the centres of the two halos [kpc] versus time [Myr], every 10 Myr. Click on the plot to jump to that moment.",
+      chartAria: "Plot of separation in kpc versus time in Myr", chartHint: "Press Run simulation to compute the orbit",
+      sSep0: "Initial separation", sSep: "Current separation", sPeri: "First pericentre", sMin: "Minimum separation", sNp: "Pericentres in 3 Gyr", sVrel: "Initial V<sub>rel</sub>", sErr: "Energy error", xyHint: "tilt the disc (xz)", never: "none",
+      footer: "Galaxy simulator · Restricted N-body with Plummer halos",
+      dlSaved: "Saved: {0}", dlCancel: "Download cancelled", dlWait: "Wait a moment and try again", dlBig: "The file is too large; record a shorter clip", dlFail: "Could not download here", dling: "Downloading {0}", imgFail: "Could not create the image",
+      fileTag: "galaxy-simulator",
+      dlVid: "Download {0} ({1} MB)", noVid: "Video not available in this browser", dlGif: "Download GIF ({0} MB)", noGif: "GIF not available",
+      dur: "Length: {0} s.", webm: " Your browser cannot record MP4, so the video is saved as WebM (it opens in Chrome, Firefox or VLC).", gifCut: " The GIF keeps only the first {0} s so the file does not get too heavy."
+    }
+  };
+  //localStorage puede fallar (modo privado, datos bloqueados): todo acceso va protegido
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
+  };
+  let lang = store.get("galsim.lang") === "en" ? "en" : "es";
+  function t(key) {
+    let s = I18N[lang][key];
+    if (s == null) s = I18N.es[key];
+    if (s == null) return key;
+    for (let i = 1; i < arguments.length; i++) s = s.split("{" + (i - 1) + "}").join(arguments[i]);
+    return s;
+  }
+  function applyLang() {
+    const root = document.documentElement;
+    root.lang = lang; root.setAttribute("data-ui-lang", lang);
+    document.title = t("docTitle");
+    document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+    document.querySelectorAll("[data-i18n-html]").forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
+    document.querySelectorAll("[data-i18n-aria]").forEach(el => { el.setAttribute("aria-label", t(el.dataset.i18nAria)); });
+    document.querySelectorAll("[data-i18n-title]").forEach(el => { el.title = t(el.dataset.i18nTitle); });
+    document.querySelectorAll(".lang button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.setlang === lang)));
+  }
+  //textos que dependen del estado (se rehacen al cambiar de idioma)
+  function refreshTexts() {
+    if (!computing) $("run").textContent = t("run");
+    $("stale").textContent = dirty ? t("stale") : "";
+    for (const id of ["play", "tPlay"]) $(id).setAttribute("aria-label", playing ? t("pause") : t("play"));
+    $("tRec").setAttribute("aria-label", rec ? t("recStop") : t("recAria"));
+    $("tFull").setAttribute("aria-label", isExpanded() ? t("fullOff") : t("fullAria"));
+    if (ic) $("vescOut").innerHTML = t("vesc", (ic.vesc * KMS).toFixed(0));
+    paintSwatches(); renderPresetNote();
+    if (ic) { updateStats(); drawChart(); render(); }
+  }
+  function setLang(l) {
+    lang = l === "en" ? "en" : "es";
+    store.set("galsim.lang", lang);
+    clearTimeout(sayTimer); $("saveMsg").textContent = "";
+    applyLang(); refreshTexts();
+  }
+  document.querySelectorAll(".lang button").forEach(b => b.addEventListener("click", () => setLang(b.dataset.setlang)));
+
+  //---------- colores: 3 opciones por galaxia (la 0 es la original) ----------
+  //cada opcion: color principal + 4 tonos del centro (claro) al borde del disco
+  const PALS = [
+    [
+      { id: "naranja", main: [255, 182, 92], ramp: [[255, 244, 214], [255, 214, 140], [255, 180, 96], [240, 130, 80]] },
+      { id: "rosa", main: [255, 105, 150], ramp: [[255, 232, 240], [255, 178, 204], [255, 105, 150], [226, 70, 130]] },
+      { id: "dorado", main: [245, 220, 90], ramp: [[255, 252, 226], [255, 240, 160], [245, 220, 90], [222, 180, 50]] }
+    ],
+    [
+      { id: "azul", main: [134, 180, 255], ramp: [[230, 240, 255], [170, 205, 255], [125, 170, 255], [150, 120, 255]] },
+      { id: "turquesa", main: [84, 214, 232], ramp: [[225, 252, 255], [160, 236, 245], [84, 214, 232], [40, 170, 214]] },
+      { id: "violeta", main: [178, 140, 255], ramp: [[240, 232, 255], [212, 190, 255], [178, 140, 255], [150, 100, 240]] }
+    ]
   ];
+  let colSel = [0, 0];
+  {
+    const m = /^([0-2]),([0-2])$/.exec(store.get("galsim.colors") || "");
+    if (m) colSel = [+m[1], +m[2]];
+  }
+  let PAL = [[], []], ORB = ["", ""], MAIN = ["#ffb65c", "#86b4ff"];
+  function paintSwatches() {
+    document.querySelectorAll(".sw").forEach(b => {
+      const g = +b.dataset.gal, c = +b.dataset.col;
+      b.setAttribute("aria-pressed", String(colSel[g] === c));
+      b.setAttribute("aria-label", t("c_" + PALS[g][c].id));
+      b.title = t("c_" + PALS[g][c].id);
+    });
+  }
+  function applyColors() {
+    for (let g = 0; g < 2; g++) {
+      const c = PALS[g][colSel[g]];
+      PAL[g] = c.ramp.map(v => "rgba(" + v.join(",") + ",A)");
+      ORB[g] = "rgba(" + c.main.join(",") + ",0.55)";
+      MAIN[g] = "rgb(" + c.main.join(",") + ")";
+      document.documentElement.style.setProperty(g ? "--g2" : "--g1", MAIN[g]);
+    }
+    paintSwatches(); render();
+  }
+  document.querySelectorAll(".sw").forEach(b => b.addEventListener("click", () => {
+    colSel[+b.dataset.gal] = +b.dataset.col;
+    store.set("galsim.colors", colSel.join(","));
+    applyColors();
+  }));
+
+  //---------- parametros: aplicar un conjunto, ejemplos y restablecer ----------
+  const PKEYS = ["fr", "ft", "q", "xy1", "xz1", "xy2", "xz2", "sepKpc", "npart"];
+  const DEFAULTS = { fr: 0.1, ft: 0.3, q: 0.5, xy1: 0, xz1: 0, xy2: 30, xz2: 45, sepKpc: 40, npart: 3000 };
+  function setParams(p) {
+    for (const k of ["fr", "ft", "q", "xy1", "xz1", "xy2", "xz2"]) $(k).value = p[k];
+    $("sep").value = p.sepKpc;
+    $("npart").value = [1000, 3000, 5000].indexOf(p.npart) >= 0 ? String(p.npart) : "3000";
+    readParams(); showParamValues();
+  }
+  function markView() {
+    document.querySelectorAll(".views button").forEach(b => {
+      const v = VIEWS[b.dataset.view];
+      b.setAttribute("aria-pressed", String(v[0] === cam.yaw && v[1] === cam.pitch));
+    });
+  }
+  //en pantallas angostas la simulacion queda fuera de vista: la traemos
+  function revealSim() {
+    const r = sim.getBoundingClientRect();
+    if (r.bottom < 120 || r.top > innerHeight - 120) sim.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" });
+  }
+  //ejemplos: mismos parametros fisicos del sitio (a = 15 kpc), instante y camara donde mas se parecen
+  const PRESETS = {
+    ant: { p: { fr: 0.1, ft: 0.41, q: 1, xy1: 0, xz1: 0, xy2: 0, xz2: 0, sepKpc: 40, npart: 5000 }, frame: 110, cam: { yaw: 0, pitch: 0, zoom: 0.6 } },
+    ring: { p: { fr: 0.1, ft: 0, q: 1, xy1: 0, xz1: 90, xy2: 0, xz2: 90, sepKpc: 40, npart: 5000 }, frame: 195, cam: { yaw: 50, pitch: 90, zoom: 1.6 } },
+    stream: { p: { fr: 0, ft: 0.58, q: 0.1, xy1: 0, xz1: 0, xy2: 0, xz2: 0, sepKpc: 30, npart: 5000 }, frame: 240, cam: { yaw: 0, pitch: 0, zoom: 0.75 } }
+  };
+  let activePreset = null, stopAt = null;
+  function renderPresetNote() {
+    document.querySelectorAll(".chip[data-preset]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.preset === activePreset)));
+    const el = $("presetNote");
+    if (!activePreset) { el.hidden = true; el.innerHTML = ""; return; }
+    el.innerHTML = t("ex_" + activePreset + "_note") + ' <button type="button" data-replay>' + t("replay") + "</button>";
+    el.hidden = false;
+  }
+  function applyPreset(id) {
+    const pr = PRESETS[id];
+    setParams(pr.p);
+    cam = { yaw: pr.cam.yaw, pitch: pr.cam.pitch, zoom: pr.cam.zoom };
+    markView();
+    activePreset = id; renderPresetNote();
+    initialFrame = pr.frame;
+    compute(false);
+    revealSim();
+  }
+  function replayPreset() {
+    if (!activePreset || dirty || computing) return;
+    const target = PRESETS[activePreset].frame;
+    frame = 0; playhead = 0; syncTime();
+    setPlaying(true); stopAt = target;
+    revealSim();
+  }
+  document.querySelectorAll(".chip[data-preset]").forEach(b => b.addEventListener("click", () => applyPreset(b.dataset.preset)));
+  $("presetNote").addEventListener("click", e => { if (e.target.closest("[data-replay]")) replayPreset(); });
+
+  let sayTimer = 0;
+  function say(msg) {
+    $("saveMsg").textContent = msg;
+    clearTimeout(sayTimer); sayTimer = setTimeout(() => { $("saveMsg").textContent = ""; }, 5000);
+  }
+  $("btnReset").addEventListener("click", () => {
+    setParams(DEFAULTS);
+    cam = { yaw: 0, pitch: 0, zoom: 1 }; markView();
+    activePreset = null; renderPresetNote();
+    initialFrame = 60;
+    compute(false);
+    say(t("resetMsg"));
+  });
+
+  //---------- guardar configuraciones de parametros (por navegador) ----------
+  const SAVE_KEY = "galsim.saved.v1", SAVE_MAX = 20;
+  let saved = [];
+  function validCfg(c) { return !!c && typeof c.name === "string" && !!c.p && PKEYS.every(k => typeof c.p[k] === "number" && isFinite(c.p[k])); }
+  function loadSaved() {
+    try { const a = JSON.parse(store.get(SAVE_KEY) || "[]"); saved = Array.isArray(a) ? a.filter(validCfg).slice(-SAVE_MAX) : []; }
+    catch (e) { saved = []; }
+  }
+  function renderSaved(pick) {
+    const sel = $("savedSel");
+    sel.innerHTML = "";
+    saved.forEach((c, i) => { const o = document.createElement("option"); o.value = String(i); o.textContent = c.name; sel.appendChild(o); });
+    $("savedRow").hidden = saved.length === 0;
+    if (saved.length) sel.value = String(Math.max(0, Math.min(saved.length - 1, pick == null ? saved.length - 1 : pick)));
+  }
+  const dlg = $("saveDlg");
+  function openSave() {
+    readParams();
+    $("saveSummary").textContent = t("sum", P.fr.toFixed(2), P.ft.toFixed(2), P.q.toFixed(2), P.xy1, P.xz1, P.xy2, P.xz2, P.sepKpc, P.npart);
+    $("saveName").value = t("defName", saved.length + 1);
+    if (document.documentElement.classList.contains("embed")) {
+      //incrustado, la "ventana" es el iframe entero: se ubica junto al boton en vez de al centro
+      const r = $("btnSave").getBoundingClientRect();
+      dlg.style.position = "absolute"; dlg.style.margin = "0 auto";
+      dlg.style.top = Math.max(16, r.top + scrollY - 260) + "px";
+    }
+    if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
+    $("saveName").select();
+  }
+  function closeSave() { if (dlg.close) dlg.close(); else dlg.removeAttribute("open"); }
+  function doSave() {
+    const name = ($("saveName").value || "").trim().slice(0, 30) || t("defName", saved.length + 1);
+    const p = {}; for (const k of PKEYS) p[k] = P[k];
+    const cfg = { name, p, c: colSel.slice() };
+    const i = saved.findIndex(c => c.name === name);
+    if (i >= 0) saved[i] = cfg; else { saved.push(cfg); if (saved.length > SAVE_MAX) saved.shift(); }
+    const ok = store.set(SAVE_KEY, JSON.stringify(saved));
+    renderSaved(saved.findIndex(c => c.name === name));
+    closeSave();
+    say(ok ? t("savedMsg", name) : t("noStore", name));
+  }
+  $("btnSave").addEventListener("click", openSave);
+  $("saveCancel").addEventListener("click", closeSave);
+  $("saveForm").addEventListener("submit", e => { e.preventDefault(); doSave(); });
+  $("btnLoad").addEventListener("click", () => {
+    const c = saved[+$("savedSel").value];
+    if (!c) return;
+    setParams(c.p);
+    if (Array.isArray(c.c) && c.c.length === 2 && c.c.every(v => v === 0 || v === 1 || v === 2)) {
+      colSel = c.c.slice(); store.set("galsim.colors", colSel.join(",")); applyColors();
+    }
+    activePreset = null; renderPresetNote();
+    compute(true);
+    say(t("loadedMsg", c.name));
+    revealSim();
+  });
+  $("btnDel").addEventListener("click", () => {
+    const i = +$("savedSel").value, c = saved[i];
+    if (!c) return;
+    saved.splice(i, 1);
+    store.set(SAVE_KEY, JSON.stringify(saved));
+    renderSaved(i);
+    say(t("deletedMsg", c.name));
+  });
+
 
   function readParams() {
     for (const k of ["fr", "ft", "q", "xy1", "xz1", "xy2", "xz2"]) P[k] = parseFloat($(k).value);
@@ -630,6 +1175,12 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, m
     $("ft_o").textContent = P.ft.toFixed(2);
     $("q_o").textContent = P.q.toFixed(2);
     for (const k of ["xy1", "xz1", "xy2", "xz2"]) $(k + "_o").textContent = P[k] + "°";
+    //un disco sin inclinar (o dado vuelta) es simetrico en torno a z: girarlo en xy no cambia nada
+    for (const g of ["1", "2"]) {
+      const flat = P["xz" + g] === 0 || P["xz" + g] === 180;
+      $("xy" + g).hidden = flat; $("xyhint" + g).hidden = !flat;
+      if (flat) $("xy" + g + "_o").textContent = "–";
+    }
     $("sep_o").textContent = P.sepKpc;
   }
 
@@ -652,7 +1203,7 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, m
     hsnap = new Float32Array(NSNAP * 6);
     storeSnap(0, ic.h, s);
     computed = 1;
-    $("vescOut").innerHTML = "V<sub>escap</sub> = " + (ic.vesc * KMS).toFixed(0) + " km/s";
+    $("vescOut").innerHTML = t("vesc", (ic.vesc * KMS).toFixed(0));
   }
   function storeSnap(i, h, s) {
     const o = i * N * 3;
@@ -669,6 +1220,7 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, m
     const h = { m: ic.h.m.slice(), x: ic.h.x.slice(), y: ic.h.y.slice(), z: ic.h.z.slice(), vx: ic.h.vx.slice(), vy: ic.h.vy.slice(), vz: ic.h.vz.slice() };
     const s = { n: N, x: ic.s.x.slice(), y: ic.s.y.slice(), z: ic.s.z.slice(), vx: ic.s.vx.slice(), vy: ic.s.vy.slice(), vz: ic.s.vz.slice() };
     let stp = 0;
+    const e0 = orbitEnergy(h, EPS2); errMax = 0;
     computing = true; dirty = false;
     $("stale").textContent = "";
     $("run").setAttribute("data-busy", "");
@@ -681,9 +1233,11 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, m
       while (stp < PHYS.nstp && performance.now() - t0 < 14) {
         stp++;
         stepOnce(h, s, DT, EPS2);
+        const de = Math.abs(orbitEnergy(h, EPS2).E - e0.E) / Math.abs(e0.W);
+        if (de > errMax) errMax = de;
         if (stp % PHYS.nout === 0) { storeSnap(stp / PHYS.nout, h, s); computed = stp / PHYS.nout + 1; }
       }
-      $("run").textContent = stp < PHYS.nstp ? "Calculando " + Math.round(100 * stp / PHYS.nstp) + "%" : "Correr simulación";
+      $("run").textContent = stp < PHYS.nstp ? t("calc", Math.round(100 * stp / PHYS.nstp)) : t("run");
       if (stp < PHYS.nstp) requestAnimationFrame(chunk);
       else {
         computing = false; $("run").removeAttribute("data-busy");
@@ -695,16 +1249,18 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, m
     requestAnimationFrame(chunk);
   }
   let initialFrame = null;
+  let errMax = 0;   //mayor cambio de la energia de la orbita, relativo a la energia potencial inicial
 
   //cambio de parametros: vista previa en t=0
   function onParam() {
     readParams(); showParamValues();
-    job++; computing = false; $("run").removeAttribute("data-busy"); $("run").textContent = "Correr simulación";
+    job++; computing = false; $("run").removeAttribute("data-busy"); $("run").textContent = t("run");
     buildICs();
     dirty = true; setPlaying(false);
     frame = 0; playhead = 0;
     $("time").value = 0; $("time").disabled = true; $("time_o").textContent = "0";
-    $("stale").textContent = "Parámetros nuevos: presiona Correr simulación";
+    $("stale").textContent = t("stale");
+    activePreset = null; renderPresetNote();
     updateStats(); drawChart(); render();
   }
 
@@ -762,7 +1318,7 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, m
       return [cx + x1 * sc, cy - (y1 * cp + z * sp) * sc];
     };
     for (let g = 0; g < 2; g++) {
-      ctx.strokeStyle = g ? "rgba(134,180,255,0.55)" : "rgba(255,182,92,0.55)";
+      ctx.strokeStyle = ORB[g];
       ctx.lineWidth = 1.2 * DPR;
       ctx.beginPath();
       for (let i = 0; i <= f; i++) { const p = proj(i, g); i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); }
@@ -860,12 +1416,14 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, m
     $("st_sep").textContent = sepAt(f).toFixed(1) + " kpc";
     const vrel = Math.hypot(ic.h.vx[1] - ic.h.vx[0], ic.h.vy[1] - ic.h.vy[0]) * KMS;
     $("st_vrel").textContent = vrel.toFixed(0) + " km/s";
-    if (dirty || computed < NSNAP) { for (const id of ["st_peri", "st_min", "st_np"]) $(id).textContent = "–"; return; }
+    if (dirty || computed < NSNAP) { for (const id of ["st_peri", "st_min", "st_np", "st_err"]) $(id).textContent = "–"; return; }
     const pk = pericenters();
     let mi = 0; for (let i = 1; i < computed; i++) if (sepAt(i) < sepAt(mi)) mi = i;
-    $("st_peri").textContent = pk.length ? Math.round(tAt(pk[0])) + " Myr" : "no ocurre";
+    $("st_peri").textContent = pk.length ? Math.round(tAt(pk[0])) + " Myr" : t("never");
     $("st_min").textContent = sepAt(mi).toFixed(1) + " kpc";
     $("st_np").textContent = String(pk.length);
+    const pe = 100 * errMax;
+    $("st_err").textContent = pe < 0.0001 ? "< 0.0001 %" : pe.toPrecision(1) + " %";
   }
 
   //grafico de separacion
@@ -900,7 +1458,7 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, m
     g.save(); g.translate(12, PAD.t + ph / 2); g.rotate(-Math.PI / 2); g.textBaseline = "middle"; g.fillText("kpc", 0, 0); g.restore();
     if (dirty) {
       g.fillStyle = "rgba(255,255,255,0.9)"; g.textAlign = "center"; g.textBaseline = "middle"; g.font = "700 14px Nunito, system-ui, sans-serif";
-      g.fillText("Presiona Correr simulación para calcular la órbita", PAD.l + pw / 2, PAD.t + ph / 2);
+      g.fillText(t("chartHint"), PAD.l + pw / 2, PAD.t + ph / 2);
       return;
     }
     //area y linea
@@ -938,9 +1496,10 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, m
   }
   function setPlaying(p) {
     playing = p;
-    $("play").setAttribute("aria-label", p ? "Pausar" : "Reproducir");
+    if (!p) stopAt = null;
+    $("play").setAttribute("aria-label", p ? t("pause") : t("play"));
     $("playIcon").innerHTML = p ? '<path d="M3 2h4v12H3zM9 2h4v12H9z"/>' : '<path d="M4 2l10 6-10 6z"/>';
-    $("tPlay").setAttribute("aria-label", p ? "Pausar" : "Reproducir");
+    $("tPlay").setAttribute("aria-label", p ? t("pause") : t("play"));
     $("tPlayIcon").innerHTML = p ? '<path d="M6 4h4v16H6zM14 4h4v16h-4z" fill="currentColor" stroke="none"/>' : '<path d="M7 4l13 8-13 8z" fill="currentColor"/>';
     if (p) requestAnimationFrame(tick);
   }
@@ -951,6 +1510,8 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, m
     last = ts;
     //1x = 180 Myr por segundo
     playhead += speed * 18 * dtms / 1000 * (reduced ? 0.5 : 1);
+    //"ver desde el inicio" de un ejemplo: se detiene en el instante elegido
+    if (stopAt != null && playhead >= stopAt) { const f = stopAt; frame = f; playhead = f; syncTime(); setPlaying(false); return; }
     if (playhead >= computed - 1) {
       playhead = computed - 1;
       if (!computing) { frame = NSNAP - 1; syncTime(); setPlaying(false); return; }
@@ -1012,6 +1573,7 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, m
 
   //teclado
   document.addEventListener("keydown", e => {
+    if (dlg.open) return;
     const tag = (e.target.tagName || "").toLowerCase();
     if (tag === "input" || tag === "select" || tag === "textarea" || tag === "button") return;
     if (e.code === "Space") { e.preventDefault(); $("play").click(); }
@@ -1033,13 +1595,13 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, m
   //entrega un archivo: capacidad downloads de claude.ai, o enlace directo si la pagina corre suelta
   async function saveFile(filename, blob) {
     if (downloads) {
-      try { await downloads.save({ filename, data: blob }); simToast("Guardado: " + filename); }
+      try { await downloads.save({ filename, data: blob }); simToast(t("dlSaved", filename)); }
       catch (err) {
         const c = err && err.code;
-        if (c === "declined") simToast("Descarga cancelada");
-        else if (c === "rate_limited") simToast("Espera un momento e inténtalo de nuevo");
-        else if (c === "too_large") simToast("El archivo es muy grande; graba un trozo más corto");
-        else simToast("No se pudo descargar aquí");
+        if (c === "declined") simToast(t("dlCancel"));
+        else if (c === "rate_limited") simToast(t("dlWait"));
+        else if (c === "too_large") simToast(t("dlBig"));
+        else simToast(t("dlFail"));
       }
       return;
     }
@@ -1047,8 +1609,8 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, m
       const url = URL.createObjectURL(blob), a = document.createElement("a");
       a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 4000);
-      simToast("Descargando " + filename);
-    } catch (err) { simToast("No se pudo descargar aquí"); }
+      simToast(t("dling", filename));
+    } catch (err) { simToast(t("dlFail")); }
   }
 
   //dibuja la pantalla + textos (tiempo, escala, leyenda) en un canvas de exportacion
@@ -1064,10 +1626,10 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, m
     g.fillText(lastScale.L + " kpc", pad + sbw + 8 * k, h - pad);
     g.font = "800 " + Math.round(14 * k) + "px 'Baloo 2', Nunito, sans-serif";
     g.fillStyle = "#f5d63a"; g.textAlign = "right";
-    g.fillText("Simulador de galaxias", w - pad, pad + 14 * k);
+    g.fillText(t("docTitle"), w - pad, pad + 14 * k);
     g.font = "600 " + Math.round(12 * k) + "px Nunito, sans-serif";
-    const items = [["Galaxia 1", "#ffb65c"], ["Galaxia 2", "#86b4ff"]];
-    if (showArrowsLegend) items.push(["V radial", "#ff6b8a"], ["V tangencial", "#5ee8a8"]);
+    const items = [[t("gal1"), MAIN[0]], [t("gal2"), MAIN[1]]];
+    if (showArrowsLegend) items.push([t("vrad"), "#ff6b8a"], [t("vtan"), "#5ee8a8"]);
     let x = w - pad;
     for (let i = items.length - 1; i >= 0; i--) {
       g.fillStyle = "rgba(255,255,255,0.85)"; g.fillText(items[i][0], x, h - pad);
@@ -1076,14 +1638,14 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, m
       x -= 20 * k;
     }
   }
-  function fileTag() { return "simulador-galaxias-t" + Math.round(lastScale.t) + "Myr"; }
+  function fileTag() { return t("fileTag") + "-t" + Math.round(lastScale.t) + "Myr"; }
 
   //captura PNG
   $("tShot").addEventListener("click", () => {
     render();
     const c = document.createElement("canvas"); c.width = W; c.height = H;
     composite(c.getContext("2d"), W, H);
-    c.toBlob(b => { if (b) saveFile(fileTag() + ".png", b); else simToast("No se pudo crear la imagen"); }, "image/png");
+    c.toBlob(b => { if (b) saveFile(fileTag() + ".png", b); else simToast(t("imgFail")); }, "image/png");
   });
 
   //grabacion: video con MediaRecorder (mp4 si el navegador puede, si no webm) + gif con gifenc, en paralelo
@@ -1118,7 +1680,7 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, m
     }
     const me = rec;
     loadGif().then(lib => { if (rec === me && lib) me.gif = { lib, enc: lib.GIFEncoder() }; });
-    $("tRec").setAttribute("data-rec", ""); $("tRec").setAttribute("aria-label", "Detener grabación");
+    $("tRec").setAttribute("data-rec", ""); $("tRec").setAttribute("aria-label", t("recStop"));
     $("tRecIcon").innerHTML = '<rect x="7" y="7" width="10" height="10" rx="1.5" fill="currentColor" stroke="none"/>';
     $("recPill").hidden = false;
     loopRec();
@@ -1148,7 +1710,7 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, m
     if (!rec) return;
     const r = rec; rec = null;
     cancelAnimationFrame(r.raf);
-    $("tRec").removeAttribute("data-rec"); $("tRec").setAttribute("aria-label", "Grabar la pantalla");
+    $("tRec").removeAttribute("data-rec"); $("tRec").setAttribute("aria-label", t("recAria"));
     $("tRecIcon").innerHTML = '<circle cx="12" cy="12" r="6" fill="currentColor" stroke="none"/>';
     $("recPill").hidden = true;
     const secs = (performance.now() - r.t0) / 1000;
@@ -1157,12 +1719,12 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, m
       lastRec = { video: r.chunks.length ? new Blob(r.chunks, { type: r.mime.split(";")[0] }) : null, ext, gif: null, tag: fileTag() };
       if (r.gif && r.gifFrames) { r.gif.enc.finish(); lastRec.gif = new Blob([r.gif.enc.bytes()], { type: "image/gif" }); }
       $("dlVideo").disabled = !lastRec.video;
-      $("dlVideo").textContent = lastRec.video ? "Descargar " + ext.toUpperCase() + " (" + (lastRec.video.size / 1e6).toFixed(1) + " MB)" : "Video no disponible en este navegador";
+      $("dlVideo").textContent = lastRec.video ? t("dlVid", ext.toUpperCase(), (lastRec.video.size / 1e6).toFixed(1)) : t("noVid");
       $("dlGif").disabled = !lastRec.gif;
-      $("dlGif").textContent = lastRec.gif ? "Descargar GIF (" + (lastRec.gif.size / 1e6).toFixed(1) + " MB)" : "GIF no disponible";
-      let info = "Duración: " + secs.toFixed(1) + " s.";
-      if (ext === "webm" && lastRec.video) info += " Tu navegador no graba MP4, así que el video sale en WebM (se abre en Chrome, Firefox o VLC).";
-      if (r.gifCut) info += " El GIF guarda solo los primeros " + GIF_MAX_S + " s para que no quede tan pesado.";
+      $("dlGif").textContent = lastRec.gif ? t("dlGif", (lastRec.gif.size / 1e6).toFixed(1)) : t("noGif");
+      let info = t("dur", secs.toFixed(1));
+      if (ext === "webm" && lastRec.video) info += t("webm");
+      if (r.gifCut) info += t("gifCut", GIF_MAX_S);
       $("recInfo").textContent = info;
       $("recPanel").hidden = false; $("dlVideo").focus();
     };
@@ -1177,7 +1739,7 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, m
   function isExpanded() { return document.fullscreenElement === sim || sim.classList.contains("expanded"); }
   function syncExpandUI() {
     const on = isExpanded();
-    $("tFull").setAttribute("aria-label", on ? "Reducir pantalla" : "Agrandar pantalla");
+    $("tFull").setAttribute("aria-label", on ? t("fullOff") : t("fullAria"));
     $("tFullIcon").innerHTML = on ? '<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/>' : '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>';
     document.body.style.overflow = sim.classList.contains("expanded") ? "hidden" : "";
     requestAnimationFrame(resize);
@@ -1198,6 +1760,8 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, m
 
   //inicio: calcula el caso por defecto y queda en la primera cola de marea
   function start() {
+    loadSaved(); renderSaved();
+    applyLang(); applyColors(); refreshTexts();
     drawSky(); resizeChart(); resize();
     readParams(); showParamValues();
     initialFrame = 60;

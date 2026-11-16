@@ -18,6 +18,13 @@ Contacto: valentina.cortesfl@usm.cl
 
 Los iframes y scripts en bloques de código requieren que el sitio esté en el plan **Core, Plus o Advanced** de Squarespace. En planes más básicos, usar un botón o enlace a la página completa.
 
-## Actualizar
+## Desarrollo
 
-Reemplazar `index.html` por la versión nueva y hacer commit. El link no cambia, así que el QR y el sitio siguen funcionando.
+- `main` es la página pública: lo que se sube ahí aparece en GitHub Pages y en Universo Inmersivo. El trabajo se hace en ramas.
+- `node pruebas/fisica.js` revisa la física (energía, velocidad de escape, orientación del disco, ejemplos).
+- `referencia/` es para `galmerg.f` y el generador de condiciones iniciales.
+- `CLAUDE.md` resume el modelo físico, las reglas de trabajo y lo pendiente.
+
+## Actualizar la página pública
+
+Unir la rama de trabajo a `main`. El link no cambia, así que el QR y el sitio siguen funcionando.
