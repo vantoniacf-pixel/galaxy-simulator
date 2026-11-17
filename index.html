@@ -512,7 +512,7 @@ html.embed body { background: var(--space); }
           </div>
           <div>
             <h3>Potencial de Plummer</h3>
-            <p>La masa encerrada es M(r) = M r³ / (r² + a²)^{3/2}, con largo de escala a = 15 kpc · √(M / 10¹¹ M☉): crece con la masa igual que el radio del disco, así una galaxia enana es una versión a escala de una grande. La fuerza entre los dos halos usa el promedio de ambos, ε² = (a₁² + a₂²) / 2. Las estrellas parten en órbitas circulares con v<sub>c</sub> = √(G M(r) / r).</p>
+            <p>La masa encerrada es M(r) = M r³ / (r² + a²)^{3/2}, con largo de escala a = 15 kpc · √(M / 10¹¹ M☉): crece con la masa igual que el radio del disco, así una galaxia enana es una versión a escala de una grande. La fuerza entre los dos halos usa el promedio de ambos, ε² = (a₁² + a₂²) / 2. Las estrellas parten en órbitas circulares con v<sub>c</sub> = √(G M(r) / r), repartidas en un <strong>disco exponencial</strong> como el de las galaxias reales: muchas cerca del centro y cada vez menos hacia el borde (largo de escala igual a un tercio del radio del disco).</p>
           </div>
         </div>
         <h3>Parámetros</h3>
@@ -530,7 +530,7 @@ html.embed body { background: var(--space); }
           </table>
         </div>
         <h3>Límites del modelo</h3>
-        <p>Los halos son rígidos y no hay fricción dinámica, así que sus centros no se funden: siguen orbitando entre sí con pericentros periódicos. Por eso el gráfico de separación oscila en vez de caer a cero. Lo que sí se transforma son los discos de estrellas.</p>
+        <p>Los halos son rígidos y no hay fricción dinámica, así que sus centros no se funden: siguen orbitando entre sí con pericentros periódicos. Por eso el gráfico de separación oscila en vez de caer a cero. Lo que sí se transforma son los discos de estrellas. Cada pasada dispersa más estrellas, así que lo que ocurre después del segundo pericentro es menos realista: dos galaxias de verdad ya se habrían fusionado.</p>
       </div>
       <div data-lang="en" lang="en">
         <h2>Information</h2>
@@ -543,7 +543,7 @@ html.embed body { background: var(--space); }
           </div>
           <div>
             <h3>Plummer potential</h3>
-            <p>The enclosed mass is M(r) = M r³ / (r² + a²)^{3/2}, with scale length a = 15 kpc · √(M / 10¹¹ M☉): it grows with mass just like the disc radius, so a dwarf galaxy is a scaled-down copy of a large one. The force between the two halos uses the average of both, ε² = (a₁² + a₂²) / 2. Stars start on circular orbits with v<sub>c</sub> = √(G M(r) / r).</p>
+            <p>The enclosed mass is M(r) = M r³ / (r² + a²)^{3/2}, with scale length a = 15 kpc · √(M / 10¹¹ M☉): it grows with mass just like the disc radius, so a dwarf galaxy is a scaled-down copy of a large one. The force between the two halos uses the average of both, ε² = (a₁² + a₂²) / 2. Stars start on circular orbits with v<sub>c</sub> = √(G M(r) / r), spread over an <strong>exponential disc</strong> like those of real galaxies: many near the centre and fewer and fewer towards the edge (scale length equal to one third of the disc radius).</p>
           </div>
         </div>
         <h3>Parameters</h3>
@@ -561,7 +561,7 @@ html.embed body { background: var(--space); }
           </table>
         </div>
         <h3>Limits of the model</h3>
-        <p>The halos are rigid and there is no dynamical friction, so their centres never merge: they keep orbiting each other with periodic pericentres. That is why the separation plot oscillates instead of dropping to zero. What does change is the stellar discs.</p>
+        <p>The halos are rigid and there is no dynamical friction, so their centres never merge: they keep orbiting each other with periodic pericentres. That is why the separation plot oscillates instead of dropping to zero. What does change is the stellar discs. Each passage scatters more stars, so what happens after the second pericentre is less realistic: two real galaxies would have merged by then.</p>
       </div>
     </section>
 
@@ -745,7 +745,11 @@ function makeICs(p) {
     const Rmax = 10000 * Math.sqrt(Mg / PHYS.Mref);
     for (let i = 0; i < n; i++) {
       const k = g * n + i;
-      const r = Rmax * Math.sqrt(rnd()) + 1e-9;
+      //disco exponencial (Freeman 1970): densidad superficial exp(-r/Rd) con Rd = Rmax/3, cortado en Rmax.
+      //el radio sigue la distribucion r exp(-r/Rd), que se sortea como -Rd ln(u1 u2)
+      const Rd = Rmax / 3;
+      let r = Rmax + 1;
+      while (r > Rmax) r = -Rd * Math.log((1 - rnd()) * (1 - rnd())) + 1e-9;
       const th = 2 * Math.PI * rnd();
       const x = r * Math.cos(th), y = r * Math.sin(th);
       const vc = Math.sqrt(G * mPlummer(r, Mg, aH[g]) / r);

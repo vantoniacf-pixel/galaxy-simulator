@@ -5,7 +5,10 @@
 //  3. que el eje de giro del disco quede donde dicen los ángulos xy y xz,
 //  4. que los halos no deriven (su centro de masa queda quieto),
 //  5. que el borde del disco rote a la velocidad esperada según la masa,
-//  6. que los ejemplos (Antena, anillo, enana) sigan teniendo los pericentros esperados.
+//  6. que los ejemplos (Antena, anillo, enana) sigan teniendo los pericentros esperados,
+//  7. que el momento angular de la órbita se conserve,
+//  8. que un disco aislado no se deforme y tenga perfil exponencial,
+//  9. que el integrador sea reversible en el tiempo.
 const fs = require("fs"), path = require("path");
 const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
 const nucleo = (html.match(/<script>[\s\S]*?<\/script>/g) || []).map(t => t.slice(8, -9)).find(t => t.includes("const PHYS"));
@@ -81,6 +84,39 @@ for (const [nombre, p, esperado] of [
 ]) {
   const r = corre(p);
   revisa(r.peri.length === esperado.length && r.peri.every((t, i) => Math.abs(t - esperado[i]) <= 20), nombre + ": " + r.peri.join(", "));
+}
+
+console.log("7. Momento angular de la órbita de los halos (debe conservarse)");
+{
+  const ic = makeICs({ seed: SEED, fr: 0.1, ft: 0.3, q: 0.5, xy1: 0, xz1: 0, xy2: 30, xz2: 45, sepKpc: 40, npart: 500 }), h = ic.h, s = ic.s;
+  const Lz = () => h.m[0] * (h.x[0] * h.vy[0] - h.y[0] * h.vx[0]) + h.m[1] * (h.x[1] * h.vy[1] - h.y[1] * h.vx[1]);
+  const L0 = Lz(); let d = 0;
+  for (let st = 1; st <= PHYS.nstp; st++) { stepOnce(h, s, DT); d = Math.max(d, Math.abs(Lz() - L0) / Math.abs(L0)); }
+  revisa(d < 1e-10, "cambio relativo máximo: " + d.toExponential(1));
+}
+
+console.log("8. Disco aislado: sin la otra galaxia, ninguna estrella debe cambiar de radio en 3 Gyr");
+{
+  const n = 1000, ic = makeICs({ seed: SEED, fr: 0, ft: 0, q: 0.5, xy1: 0, xz1: 0, xy2: 0, xz2: 0, sepKpc: 40, npart: n }), h = ic.h, s = ic.s;
+  h.m[1] = 0;
+  const rad = k => Math.hypot(s.x[k] - h.x[0], s.y[k] - h.y[0], s.z[k] - h.z[0]);
+  const r0 = []; for (let k = 0; k < n; k++) r0.push(rad(k));
+  let d = 0;
+  for (let st = 1; st <= PHYS.nstp; st++) { stepOnce(h, s, DT); if (st % 500 === 0) for (let k = 0; k < n; k++) d = Math.max(d, Math.abs(rad(k) - r0[k])); }
+  revisa(d < 1, "cambio máximo de radio: " + d.toFixed(3) + " pc");
+  const orden = r0.slice().sort((a, b) => a - b), mediana = orden[n >> 1] / 1000;
+  revisa(Math.abs(mediana - 4.6) < 0.4, "perfil exponencial: radio mediano " + mediana.toFixed(2) + " kpc (esperado 4.6)");
+}
+
+console.log("9. Reversibilidad: 3 Gyr hacia adelante, invertir velocidades y 3 Gyr hacia atrás");
+{
+  const ic = makeICs({ seed: SEED, fr: 0.1, ft: 0.3, q: 0.5, xy1: 0, xz1: 0, xy2: 30, xz2: 45, sepKpc: 40, npart: 500 }), h = ic.h, s = ic.s;
+  const x0 = s.x.slice(), y0 = s.y.slice(), z0 = s.z.slice();
+  for (let st = 0; st < PHYS.nstp; st++) stepOnce(h, s, DT);
+  for (const o of [h, s]) for (const c of ["vx", "vy", "vz"]) for (let k = 0; k < o[c].length; k++) o[c][k] = -o[c][k];
+  for (let st = 0; st < PHYS.nstp; st++) stepOnce(h, s, DT);
+  let d = 0; for (let k = 0; k < s.n; k++) d = Math.max(d, Math.hypot(s.x[k] - x0[k], s.y[k] - y0[k], s.z[k] - z0[k]));
+  revisa(d < 1e-3, "las estrellas vuelven a su lugar con un error de " + d.toExponential(1) + " pc");
 }
 
 console.log(fallas ? "\n" + fallas + " prueba(s) fallaron" : "\nTodo bien");

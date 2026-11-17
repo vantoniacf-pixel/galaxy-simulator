@@ -33,7 +33,7 @@ Simulador interactivo de choques de galaxias (N-cuerpos restringido) que corre e
 - M₁ = 10¹¹ M☉, M₂ = q·M₁. Largo de escala de Plummer de cada halo: a = 15 kpc·√(M/10¹¹ M☉), igual que escala el radio del disco (el borde del disco queda siempre en r = 2a/3). Velocidad circular en el borde: 86 km/s (q = 1), 72 (q = 0.5), 48 (q = 0.1).
 - Fuerza sobre las estrellas: cada halo con su propio a. Fuerza entre halos: Plummer con ε² = (a₁² + a₂²)/2, simétrica (acción = reacción); con masas iguales es el a común. Es una aproximación de masa puntual suavizada, no la interacción exacta de dos esferas extendidas.
 - Centro de masa: los halos parten con momento total cero y las estrellas no entran en esa cuenta (son partículas de prueba). El centro de masa de los halos no se mueve.
-- Disco: uniforme en área, radio 10 kpc·√(M/10¹¹ M☉), órbitas circulares con v_c = √(G M(<r)/r) y M(<r) = M r³/(r²+a²)^{3/2}.
+- Disco: exponencial, densidad superficial ∝ exp(−r/R_d) con R_d = R/3, cortado en R = 10 kpc·√(M/10¹¹ M☉) (igual que el perfil `exp` de `finalboss_corregido.py`, pero sin espesor). Plano y frío: órbitas circulares con v_c = √(G M(<r)/r) y M(<r) = M r³/(r²+a²)^{3/2}.
 - Orientación del disco: primero se inclina en torno a y (ángulo xz), después se gira en torno a z (ángulo xy). Eje de giro = (sin xz·cos xy, sin xz·sin xy, cos xz). Con xz = 0° o 180° el ángulo xy no tiene efecto y el control se apaga.
 - Órbita: velocidades radial y tangencial como fracción de V_escap = √(2GM/√(d²+ε²)), la de escape con el mismo potencial suavizado que usa el integrador para los halos. E ∝ fr² + ft² − 1.
 - Integrador: leapfrog kick-drift-kick, halos simultáneos, 3000 pasos de 1 Myr, una imagen cada 10 Myr. Error de energía típico 0.003 %.
@@ -54,11 +54,11 @@ Con la versión anterior, web y Fortran coincidían en la posición de los halos
 
 ## Pendiente (fase 2)
 
-Hecho: leapfrog, velocidad de escape suavizada, orden de rotaciones, a ∝ √M, centro de masa solo con los halos.
+Hecho: leapfrog, velocidad de escape suavizada, orden de rotaciones, a ∝ √M, centro de masa solo con los halos, disco exponencial.
 
 1. Llevar los cambios al Fortran y al Python y volver a validar web contra Fortran.
-2. Disco exponencial con espesor en vez de disco uniforme plano.
-3. Fricción dinámica para que los halos se fusionen.
+2. Espesor del disco (hoy es plano).
+3. Fricción dinámica para que los halos se fusionen. Es lo que más limita el realismo: sin ella los halos pasan 3 o 4 veces y cada pasada dispersa más estrellas (caso por defecto: 1 %, 7 %, 14 % y 20 % de la galaxia 1 a más de 1.5 radios de disco en 0.6, 1.2, 2 y 3 Gyr).
 4. Interacción exacta entre dos esferas de Plummer extendidas (hoy es puntual suavizada).
 5. Interfaz: compartir configuraciones entre personas, modo guiado.
 
