@@ -512,7 +512,7 @@ html.embed body { background: var(--space); }
           </div>
           <div>
             <h3>Potencial de Plummer</h3>
-            <p>La masa encerrada es M(r) = M r³ / (r² + a²)^{3/2}, con largo de escala a = 15 kpc, que también es el suavizado del integrador. Las estrellas parten en órbitas circulares con v<sub>c</sub> = √(G M(r) / r).</p>
+            <p>La masa encerrada es M(r) = M r³ / (r² + a²)^{3/2}, con largo de escala a = 15 kpc · √(M / 10¹¹ M☉): crece con la masa igual que el radio del disco, así una galaxia enana es una versión a escala de una grande. La fuerza entre los dos halos usa el promedio de ambos, ε² = (a₁² + a₂²) / 2. Las estrellas parten en órbitas circulares con v<sub>c</sub> = √(G M(r) / r).</p>
           </div>
         </div>
         <h3>Parámetros</h3>
@@ -520,7 +520,7 @@ html.embed body { background: var(--space); }
           <table>
             <thead><tr><th>Parámetro</th><th>Significado</th><th>Rango</th></tr></thead>
             <tbody>
-              <tr><td>Velocidad radial</td><td>Velocidad radial relativa inicial (acercamiento) como fracción de la velocidad de escape del par, V<sub>escap</sub> = √(2 G M / √(d² + a²)), calculada con el mismo potencial de Plummer de la simulación. Si (v. radial)² + (v. tangencial)² &lt; 1 la órbita es ligada; si es mayor, las galaxias se alejan para siempre.</td><td>0 – 1</td></tr>
+              <tr><td>Velocidad radial</td><td>Velocidad radial relativa inicial (acercamiento) como fracción de la velocidad de escape del par, V<sub>escap</sub> = √(2 G M / √(d² + ε²)), calculada con el mismo potencial de Plummer de la simulación. Si (v. radial)² + (v. tangencial)² &lt; 1 la órbita es ligada; si es mayor, las galaxias se alejan para siempre.</td><td>0 – 1</td></tr>
               <tr><td>Velocidad tangencial</td><td>Velocidad tangencial relativa inicial. Controla el momento angular de la órbita y qué tan cerca pasan.</td><td>0 – 1</td></tr>
               <tr><td>Razón de masas</td><td>q = M₂ / M₁, con M₁ = 10¹¹ M☉. El radio del disco escala como 10 kpc · √(M / 10¹¹ M☉).</td><td>0.1 – 1</td></tr>
               <tr><td>Ángulo xz</td><td>Inclinación del disco respecto al plano de la órbita (giro en torno al eje y). 0° es un disco en el plano de la órbita, 90° lo deja de canto y 180° lo deja retrógrado.</td><td>0° – 180°</td></tr>
@@ -543,7 +543,7 @@ html.embed body { background: var(--space); }
           </div>
           <div>
             <h3>Plummer potential</h3>
-            <p>The enclosed mass is M(r) = M r³ / (r² + a²)^{3/2}, with scale length a = 15 kpc, which is also the softening length of the integrator. Stars start on circular orbits with v<sub>c</sub> = √(G M(r) / r).</p>
+            <p>The enclosed mass is M(r) = M r³ / (r² + a²)^{3/2}, with scale length a = 15 kpc · √(M / 10¹¹ M☉): it grows with mass just like the disc radius, so a dwarf galaxy is a scaled-down copy of a large one. The force between the two halos uses the average of both, ε² = (a₁² + a₂²) / 2. Stars start on circular orbits with v<sub>c</sub> = √(G M(r) / r).</p>
           </div>
         </div>
         <h3>Parameters</h3>
@@ -551,7 +551,7 @@ html.embed body { background: var(--space); }
           <table>
             <thead><tr><th>Parameter</th><th>Meaning</th><th>Range</th></tr></thead>
             <tbody>
-              <tr><td>Radial velocity</td><td>Initial relative radial (approach) velocity as a fraction of the escape velocity of the pair, V<sub>esc</sub> = √(2 G M / √(d² + a²)), computed with the same Plummer potential as the simulation. If (radial v.)² + (tangential v.)² &lt; 1 the orbit is bound; if it is larger, the galaxies fly apart for good.</td><td>0 – 1</td></tr>
+              <tr><td>Radial velocity</td><td>Initial relative radial (approach) velocity as a fraction of the escape velocity of the pair, V<sub>esc</sub> = √(2 G M / √(d² + ε²)), computed with the same Plummer potential as the simulation. If (radial v.)² + (tangential v.)² &lt; 1 the orbit is bound; if it is larger, the galaxies fly apart for good.</td><td>0 – 1</td></tr>
               <tr><td>Tangential velocity</td><td>Initial relative tangential velocity. It sets the angular momentum of the orbit and how close the galaxies pass.</td><td>0 – 1</td></tr>
               <tr><td>Mass ratio</td><td>q = M₂ / M₁, with M₁ = 10¹¹ M☉. The disc radius scales as 10 kpc · √(M / 10¹¹ M☉).</td><td>0.1 – 1</td></tr>
               <tr><td>xz angle</td><td>Tilt of the disc with respect to the orbital plane (rotation about the y axis). 0° is a disc in the orbital plane, 90° is edge-on and 180° makes it retrograde.</td><td>0° – 180°</td></tr>
@@ -673,9 +673,8 @@ const PHYS = {
   G: 1.0,
   vsim: 65.8,     //m/s
   tsim: 14.9,     //Myr
-  a: 15000.0,     //pc, largo de escala plummer = lsoft
+  a: 15000.0,     //pc, largo de escala de plummer de un halo de masa Mref
   Mref: 1e11,     //Msol
-  mpart: 1e5,     //Msol
   tmx: 3000.0,    //Myr
   nstp: 3000,
   nout: 10
@@ -704,18 +703,30 @@ function rotar(v, pxy, pxz) {
   return [xt * c1 - yt * s1, xt * s1 + yt * c1, zt];
 }
 
+//largo de escala de cada halo: crece como sqrt(M), igual que el radio del disco, asi todas las galaxias
+//tienen la misma forma (el borde del disco queda siempre en r = 2a/3)
+function aHalo(M) {
+  return PHYS.a * Math.sqrt(M / PHYS.Mref);
+}
+//suavizado de la fuerza entre dos halos: promedio cuadratico de sus largos de escala.
+//es simetrico (accion = reaccion) y con masas iguales se reduce al a comun
+function eps2Par(a1, a2) {
+  return 0.5 * (a1 * a1 + a2 * a2);
+}
+
 //p: {q, sepKpc, fr, ft, xy1, xz1, xy2, xz2 (grados), npart, seed}
 function makeICs(p) {
   const rnd = mulberry32(p.seed || 1);
-  const G = PHYS.G, a = PHYS.a;
+  const G = PHYS.G;
   const M1 = PHYS.Mref, M2 = p.q * PHYS.Mref, M = M1 + M2;
+  const aH = [aHalo(M1), aHalo(M2)];
   const sep = p.sepKpc * 1000;
   //velocidad de escape del par con el potencial suavizado que usa el integrador: E = 0 cuando fr^2 + ft^2 = 1
-  const vesc = Math.sqrt(2 * G * M / Math.sqrt(sep * sep + a * a));
+  const vesc = Math.sqrt(2 * G * M / Math.sqrt(sep * sep + eps2Par(aH[0], aH[1])));
   const vt = p.ft * vesc, vr = p.fr * vesc;
   //halos en torno al centro de masa, separacion real = sep
   const h = {
-    m: [M1, M2],
+    m: [M1, M2], a: aH,
     x: [-(M2 / M) * sep, (M1 / M) * sep], y: [0, 0], z: [0, 0],
     //vr > 0: se acercan; vt: orbita antihoraria
     vx: [(M2 / M) * vr, -(M1 / M) * vr],
@@ -737,7 +748,7 @@ function makeICs(p) {
       const r = Rmax * Math.sqrt(rnd()) + 1e-9;
       const th = 2 * Math.PI * rnd();
       const x = r * Math.cos(th), y = r * Math.sin(th);
-      const vc = Math.sqrt(G * mPlummer(r, Mg, a) / r);
+      const vc = Math.sqrt(G * mPlummer(r, Mg, aH[g]) / r);
       const pos = rotar([x, y, 0], ang[g][0], ang[g][1]);
       const vel = rotar([-(y / r) * vc, (x / r) * vc, 0], ang[g][0], ang[g][1]);
       s.gal[k] = g;
@@ -745,40 +756,37 @@ function makeICs(p) {
       s.vx[k] = vel[0] + h.vx[g]; s.vy[k] = vel[1] + h.vy[g]; s.vz[k] = vel[2];
     }
   }
-  //restar velocidad del centro de masa (halos + estrellas)
-  let mt = M, px = M1 * h.vx[0] + M2 * h.vx[1], py = M1 * h.vy[0] + M2 * h.vy[1], pz = 0;
-  for (let k = 0; k < N; k++) { px += PHYS.mpart * s.vx[k]; py += PHYS.mpart * s.vy[k]; pz += PHYS.mpart * s.vz[k]; mt += PHYS.mpart; }
-  const cx = px / mt, cy = py / mt, cz = pz / mt;
-  for (let g = 0; g < 2; g++) { h.vx[g] -= cx; h.vy[g] -= cy; h.vz[g] -= cz; }
-  for (let k = 0; k < N; k++) { s.vx[k] -= cx; s.vy[k] -= cy; s.vz[k] -= cz; }
+  //centro de masa: los halos ya parten con momento total cero (M1 v1 + M2 v2 = 0).
+  //las estrellas son particulas de prueba, sin masa, asi que no entran en esa cuenta
   return { h, s, vesc };
 }
 
 //aceleracion de cada halo por el otro (todas con las posiciones del mismo instante)
-function accHalos(h, eps2) {
+function accHalos(h) {
   const nh = h.m.length;
   for (let j = 0; j < nh; j++) {
     let ax = 0, ay = 0, az = 0;
     for (let i = 0; i < nh; i++) {
       if (i === j) continue;
       const dx = h.x[j] - h.x[i], dy = h.y[j] - h.y[i], dz = h.z[j] - h.z[i];
-      const r2 = dx * dx + dy * dy + dz * dz + eps2;
+      const r2 = dx * dx + dy * dy + dz * dz + eps2Par(h.a[i], h.a[j]);
       const f = h.m[i] / (r2 * Math.sqrt(r2));
       ax -= f * dx; ay -= f * dy; az -= f * dz;
     }
     h.ax[j] = ax; h.ay[j] = ay; h.az[j] = az;
   }
 }
-//aceleracion de cada estrella por los halos
-function accStars(h, s, eps2) {
+//aceleracion de cada estrella por los halos: cada halo con su propio largo de escala
+function accStars(h, s) {
   const nh = h.m.length, N = s.n;
+  const e2 = h.a.map(v => v * v);
   const hx = h.x, hy = h.y, hz = h.z, hm = h.m;
   const x = s.x, y = s.y, z = s.z;
   for (let j = 0; j < N; j++) {
     let ax = 0, ay = 0, az = 0;
     for (let i = 0; i < nh; i++) {
       const dx = x[j] - hx[i], dy = y[j] - hy[i], dz = z[j] - hz[i];
-      const r2 = dx * dx + dy * dy + dz * dz + eps2;
+      const r2 = dx * dx + dy * dy + dz * dz + e2[i];
       const f = hm[i] / (r2 * Math.sqrt(r2));
       ax -= f * dx; ay -= f * dy; az -= f * dz;
     }
@@ -787,12 +795,12 @@ function accStars(h, s, eps2) {
 }
 //un paso leapfrog kick-drift-kick: medio empujon a la velocidad, paso completo de posicion, medio empujon
 //halos y estrellas avanzan juntos; la aceleracion del final de un paso se reutiliza al inicio del siguiente
-function stepOnce(h, s, dt, eps2) {
+function stepOnce(h, s, dt) {
   const nh = h.m.length, N = s.n, hdt = 0.5 * dt;
   if (!s.ax) {
     h.ax = new Array(nh).fill(0); h.ay = new Array(nh).fill(0); h.az = new Array(nh).fill(0);
     s.ax = new Float64Array(N); s.ay = new Float64Array(N); s.az = new Float64Array(N);
-    accHalos(h, eps2); accStars(h, s, eps2);
+    accHalos(h); accStars(h, s);
   }
   const x = s.x, y = s.y, z = s.z, vx = s.vx, vy = s.vy, vz = s.vz, ax = s.ax, ay = s.ay, az = s.az;
   for (let j = 0; j < nh; j++) {
@@ -803,26 +811,26 @@ function stepOnce(h, s, dt, eps2) {
     vx[j] += ax[j] * hdt; vy[j] += ay[j] * hdt; vz[j] += az[j] * hdt;
     x[j] += vx[j] * dt; y[j] += vy[j] * dt; z[j] += vz[j] * dt;
   }
-  accHalos(h, eps2); accStars(h, s, eps2);
+  accHalos(h); accStars(h, s);
   for (let j = 0; j < nh; j++) { h.vx[j] += h.ax[j] * hdt; h.vy[j] += h.ay[j] * hdt; h.vz[j] += h.az[j] * hdt; }
   for (let j = 0; j < N; j++) { vx[j] += ax[j] * hdt; vy[j] += ay[j] * hdt; vz[j] += az[j] * hdt; }
 }
 
 //energia de la orbita de los halos: cinetica + potencial de Plummer (las estrellas son particulas de prueba)
-function orbitEnergy(h, eps2) {
+function orbitEnergy(h) {
   const nh = h.m.length;
   let K = 0, W = 0;
   for (let j = 0; j < nh; j++) {
     K += 0.5 * h.m[j] * (h.vx[j] * h.vx[j] + h.vy[j] * h.vy[j] + h.vz[j] * h.vz[j]);
     for (let i = 0; i < j; i++) {
       const dx = h.x[j] - h.x[i], dy = h.y[j] - h.y[i], dz = h.z[j] - h.z[i];
-      W -= PHYS.G * h.m[i] * h.m[j] / Math.sqrt(dx * dx + dy * dy + dz * dz + eps2);
+      W -= PHYS.G * h.m[i] * h.m[j] / Math.sqrt(dx * dx + dy * dy + dz * dz + eps2Par(h.a[i], h.a[j]));
     }
   }
   return { E: K + W, W };
 }
 
-if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, orbitEnergy, mulberry32 };
+if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, orbitEnergy, aHalo, eps2Par, mPlummer, mulberry32 };
 
 </script>
 <script>
@@ -831,7 +839,6 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, o
   const $ = id => document.getElementById(id);
   const NSNAP = PHYS.nstp / PHYS.nout + 1;
   const DT = (PHYS.tmx / PHYS.tsim) / PHYS.nstp;
-  const EPS2 = PHYS.a * PHYS.a;
   const KMS = PHYS.vsim / 1000;
   const reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -873,7 +880,7 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, o
       exAnt: "Galaxias Antena", exRing: "Galaxia anillo", exStream: "Enana y corriente",
       ex_ant_note: "<strong>Galaxias Antena (NGC 4038/39).</strong> Dos discos iguales que giran en el mismo sentido que la órbita y pasan cerca. La marea del otro halo estira el lado lejano de cada disco en una cola larga: las dos «antenas». Se muestra en t = 1100 Myr.",
       ex_ring_note: "<strong>Galaxia anillo, tipo Rueda de Carro.</strong> Las galaxias se atraviesan de frente y por el centro. El tirón repentino hace que las estrellas se junten en anillos que se expanden, como ondas en un estanque. Se muestra en t = 1950 Myr, tras tres pasadas.",
-      ex_stream_note: "<strong>Enana alrededor de una galaxia masiva.</strong> La enana (q = 0.1) orbita a la galaxia grande y la marea la va deshaciendo en una corriente de estrellas, parecido a la enana de Sagitario en la Vía Láctea. Se muestra en t = 2400 Myr.",
+      ex_stream_note: "<strong>Enana alrededor de una galaxia masiva.</strong> La enana (q = 0.1) orbita a la galaxia grande. En cada pasada la marea le arranca estrellas, que quedan repartidas a lo largo de su órbita como una corriente, y a su vez la enana deforma el disco grande. Se parece a la enana de Sagitario en la Vía Láctea. Se muestra en t = 1800 Myr.",
       replay: "Ver desde el inicio",
       params: "Parámetros", vr: "Velocidad radial", vt: "Velocidad tangencial", q: "Razón de masas", axy: "Ángulo xy", axz: "Ángulo xz",
       g1: "Galaxia 1 · 10¹¹ M☉", g2: "Galaxia 2 · q × 10¹¹ M☉",
@@ -913,7 +920,7 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, o
       exAnt: "Antennae Galaxies", exRing: "Ring galaxy", exStream: "Dwarf and stream",
       ex_ant_note: "<strong>Antennae Galaxies (NGC 4038/39).</strong> Two equal discs that spin in the same sense as the orbit and pass close to each other. The tide from the other halo stretches the far side of each disc into a long tail: the two “antennae”. Shown at t = 1100 Myr.",
       ex_ring_note: "<strong>Ring galaxy, Cartwheel type.</strong> The galaxies pass through each other head-on and through the centre. The sudden pull makes the stars pile up into rings that expand, like ripples on a pond. Shown at t = 1950 Myr, after three passages.",
-      ex_stream_note: "<strong>A dwarf around a massive galaxy.</strong> The dwarf (q = 0.1) orbits the large galaxy and the tide slowly pulls it apart into a stream of stars, much like the Sagittarius dwarf in the Milky Way. Shown at t = 2400 Myr.",
+      ex_stream_note: "<strong>A dwarf around a massive galaxy.</strong> The dwarf (q = 0.1) orbits the large galaxy. On each passage the tide strips stars from it, which spread along its orbit as a stream, while the dwarf in turn distorts the large disc. It resembles the Sagittarius dwarf in the Milky Way. Shown at t = 1800 Myr.",
       replay: "Watch from the start",
       params: "Parameters", vr: "Radial velocity", vt: "Tangential velocity", q: "Mass ratio", axy: "xy angle", axz: "xz angle",
       g1: "Galaxy 1 · 10¹¹ M☉", g2: "Galaxy 2 · q × 10¹¹ M☉",
@@ -1055,7 +1062,7 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, o
   const PRESETS = {
     ant: { p: { fr: 0.1, ft: 0.41, q: 1, xy1: 0, xz1: 0, xy2: 0, xz2: 0, sepKpc: 40, npart: 5000 }, frame: 110, cam: { yaw: 0, pitch: 0, zoom: 0.6 } },
     ring: { p: { fr: 0.1, ft: 0, q: 1, xy1: 0, xz1: 90, xy2: 0, xz2: 90, sepKpc: 40, npart: 5000 }, frame: 195, cam: { yaw: 50, pitch: 90, zoom: 1.6 } },
-    stream: { p: { fr: 0, ft: 0.58, q: 0.1, xy1: 0, xz1: 0, xy2: 0, xz2: 0, sepKpc: 30, npart: 5000 }, frame: 240, cam: { yaw: 0, pitch: 0, zoom: 0.75 } }
+    stream: { p: { fr: 0, ft: 0.55, q: 0.1, xy1: 0, xz1: 0, xy2: 0, xz2: 0, sepKpc: 30, npart: 5000 }, frame: 180, cam: { yaw: 0, pitch: 0, zoom: 0.75 } }
   };
   let activePreset = null, stopAt = null;
   function renderPresetNote() {
@@ -1217,10 +1224,10 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, o
   function compute(autoplay) {
     readParams(); buildICs();
     const my = ++job;
-    const h = { m: ic.h.m.slice(), x: ic.h.x.slice(), y: ic.h.y.slice(), z: ic.h.z.slice(), vx: ic.h.vx.slice(), vy: ic.h.vy.slice(), vz: ic.h.vz.slice() };
+    const h = { m: ic.h.m.slice(), a: ic.h.a.slice(), x: ic.h.x.slice(), y: ic.h.y.slice(), z: ic.h.z.slice(), vx: ic.h.vx.slice(), vy: ic.h.vy.slice(), vz: ic.h.vz.slice() };
     const s = { n: N, x: ic.s.x.slice(), y: ic.s.y.slice(), z: ic.s.z.slice(), vx: ic.s.vx.slice(), vy: ic.s.vy.slice(), vz: ic.s.vz.slice() };
     let stp = 0;
-    const e0 = orbitEnergy(h, EPS2); errMax = 0;
+    const e0 = orbitEnergy(h); errMax = 0;
     computing = true; dirty = false;
     $("stale").textContent = "";
     $("run").setAttribute("data-busy", "");
@@ -1232,8 +1239,8 @@ if (typeof module !== "undefined") module.exports = { PHYS, makeICs, stepOnce, o
       const t0 = performance.now();
       while (stp < PHYS.nstp && performance.now() - t0 < 14) {
         stp++;
-        stepOnce(h, s, DT, EPS2);
-        const de = Math.abs(orbitEnergy(h, EPS2).E - e0.E) / Math.abs(e0.W);
+        stepOnce(h, s, DT);
+        const de = Math.abs(orbitEnergy(h).E - e0.E) / Math.abs(e0.W);
         if (de > errMax) errMax = de;
         if (stp % PHYS.nout === 0) { storeSnap(stp / PHYS.nout, h, s); computed = stp / PHYS.nout + 1; }
       }

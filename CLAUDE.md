@@ -22,7 +22,7 @@ Simulador interactivo de choques de galaxias (N-cuerpos restringido) que corre e
 - `index.html`: todo el simulador en un archivo (CSS, HTML, y dos `<script>`).
   - Primer script grande: **núcleo físico** (`PHYS`, `makeICs`, `stepOnce`, `orbitEnergy`). No depende del navegador; las pruebas lo extraen tal cual.
   - Segundo script: interfaz (textos ES/EN en `I18N`, colores en `PALS`, ejemplos en `PRESETS`, guardado en `localStorage`, dibujo en canvas, captura y grabación).
-- `pruebas/fisica.js`: pruebas de energía, velocidad de escape, orientación del disco y pericentros de los ejemplos.
+- `pruebas/fisica.js`: pruebas de energía, velocidad de escape, orientación del disco, centro de masa, rotación del disco y pericentros de los ejemplos.
 - `referencia/`: `galmerg.f` y el generador de condiciones iniciales en Python (los códigos originales de la tesina).
 - `squarespace-bloque-de-codigo.html`: el iframe que usa Universo Inmersivo.
 
@@ -30,30 +30,36 @@ Simulador interactivo de choques de galaxias (N-cuerpos restringido) que corre e
 
 - N-cuerpos restringido (Toomre y Toomre 1972): dos halos de Plummer se atraen entre sí; las estrellas son partículas de prueba que sienten a los dos halos.
 - Unidades con G = 1: masa en M☉, largo en pc, velocidad en 65.8 m/s, tiempo en 14.9 Myr.
-- M₁ = 10¹¹ M☉, M₂ = q·M₁. Largo de escala de Plummer a = 15 kpc para ambos halos; es también el suavizado.
+- M₁ = 10¹¹ M☉, M₂ = q·M₁. Largo de escala de Plummer de cada halo: a = 15 kpc·√(M/10¹¹ M☉), igual que escala el radio del disco (el borde del disco queda siempre en r = 2a/3). Velocidad circular en el borde: 86 km/s (q = 1), 72 (q = 0.5), 48 (q = 0.1).
+- Fuerza sobre las estrellas: cada halo con su propio a. Fuerza entre halos: Plummer con ε² = (a₁² + a₂²)/2, simétrica (acción = reacción); con masas iguales es el a común. Es una aproximación de masa puntual suavizada, no la interacción exacta de dos esferas extendidas.
+- Centro de masa: los halos parten con momento total cero y las estrellas no entran en esa cuenta (son partículas de prueba). El centro de masa de los halos no se mueve.
 - Disco: uniforme en área, radio 10 kpc·√(M/10¹¹ M☉), órbitas circulares con v_c = √(G M(<r)/r) y M(<r) = M r³/(r²+a²)^{3/2}.
 - Orientación del disco: primero se inclina en torno a y (ángulo xz), después se gira en torno a z (ángulo xy). Eje de giro = (sin xz·cos xy, sin xz·sin xy, cos xz). Con xz = 0° o 180° el ángulo xy no tiene efecto y el control se apaga.
-- Órbita: velocidades radial y tangencial como fracción de V_escap = √(2GM/√(d²+a²)), la de escape con el mismo potencial de Plummer del integrador. E ∝ fr² + ft² − 1.
+- Órbita: velocidades radial y tangencial como fracción de V_escap = √(2GM/√(d²+ε²)), la de escape con el mismo potencial suavizado que usa el integrador para los halos. E ∝ fr² + ft² − 1.
 - Integrador: leapfrog kick-drift-kick, halos simultáneos, 3000 pasos de 1 Myr, una imagen cada 10 Myr. Error de energía típico 0.003 %.
 - Semilla fija (20260928): los mismos parámetros dan siempre la misma simulación.
 - Los ejemplos (Antena, anillo, enana) usan esta misma física; no cambies a ni la semilla solo para que un ejemplo se vea mejor.
 
 ## Diferencias con los códigos de referencia
 
-`index.html` ya no coincide con `galmerg.f` ni con el generador en Python. La web cambió tres cosas que los originales no tienen:
+`index.html` ya no coincide con `galmerg.f` ni con el generador en Python. La web cambió cinco cosas que los originales no tienen:
 
 1. Leapfrog KDK con halos simultáneos (el Fortran usa Euler, estrellas con los halos del paso anterior y halos uno después del otro).
 2. Velocidad de escape con potencial de Plummer (los originales usan √(2GM/d)).
 3. Orden de rotaciones: inclinar (y) y después girar (z) (los originales giran en z y después inclinan).
+4. Largo de escala a ∝ √M por halo (el `finalboss_corregido.py` ya tiene esa opción, `escala_a`; el galmerg.f original usa un solo suavizado).
+5. Sin corrección de centro de masa con la masa de las estrellas.
 
 Con la versión anterior, web y Fortran coincidían en la posición de los halos a menos de 0.4 pc tras 3 Gyr. Ese número está en el póster y corresponde a la versión anterior.
 
 ## Pendiente (fase 2)
 
-1. Llevar los tres cambios al Fortran y al Python y volver a validar web contra Fortran.
-2. Corrección del centro de masa solo con los halos: hoy incluye la masa de las estrellas (10⁵ M☉ cada una) aunque son partículas de prueba, y los halos derivan (1.1 kpc en 3 Gyr en el ejemplo de la enana).
-3. Largo de escala del halo según la masa (a ∝ √M): con a fijo, una enana con q = 0.1 rota a 11 km/s en el borde y se desarma demasiado fácil.
-4. Disco exponencial con bulbo; fricción dinámica para que los halos se fusionen.
+Hecho: leapfrog, velocidad de escape suavizada, orden de rotaciones, a ∝ √M, centro de masa solo con los halos.
+
+1. Llevar los cambios al Fortran y al Python y volver a validar web contra Fortran.
+2. Disco exponencial con espesor en vez de disco uniforme plano.
+3. Fricción dinámica para que los halos se fusionen.
+4. Interacción exacta entre dos esferas de Plummer extendidas (hoy es puntual suavizada).
 5. Interfaz: compartir configuraciones entre personas, modo guiado.
 
 ## Modo incrustado
