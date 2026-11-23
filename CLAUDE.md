@@ -22,6 +22,7 @@ Simulador interactivo de choques de galaxias (N-cuerpos restringido) que corre e
 - `index.html`: todo el simulador en un archivo (CSS, HTML, y dos `<script>`).
   - Primer script grande: **núcleo físico** (`PHYS`, `makeICs`, `stepOnce`, `orbitEnergy`). No depende del navegador; las pruebas lo extraen tal cual.
   - Segundo script: interfaz (textos ES/EN en `I18N`, colores en `PALS`, ejemplos en `PRESETS`, guardado en `localStorage`, dibujo en canvas, captura y grabación).
+  - Bienvenida: 4 tarjetas (`<dialog id="welcome">`) que se abren solas la primera vez (`localStorage` `galsim.welcome.v1`) y con el botón "¿Qué estoy viendo?". Sus imágenes son WebP en base64, hechas con este mismo núcleo físico (disco aislado, Antena a 250 y 1100 Myr, anillo a 1950 Myr).
 - `pruebas/fisica.js`: pruebas de energía, velocidad de escape, orientación del disco, centro de masa, rotación del disco y pericentros de los ejemplos.
 - `referencia/`: `galmerg.f` y el generador de condiciones iniciales en Python (los códigos originales de la tesina).
 - `squarespace-bloque-de-codigo.html`: el iframe que usa Universo Inmersivo.
